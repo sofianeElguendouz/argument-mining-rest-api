@@ -14,12 +14,15 @@ Well I welcome this opportunity to join Senator Kennedy completely on that state
 
 
 argumentative_components_pipeline = pipeline(
-  task="token-classification", model="crscardellino/orbis-demo-seq-tag",
-  token=os.getenv("HF_TOKEN"), aggregation_strategy="first"
+    task="token-classification",
+    model="crscardellino/orbis-demo-seq-tag",
+    token=os.getenv("HF_TOKEN"),
+    aggregation_strategy="first",
 )
 argumentative_structure_pipeline = pipeline(
-  task="text-classification", model="crscardellino/orbis-demo-rel-class",
-  token=os.getenv("HF_TOKEN")
+    task="text-classification",
+    model="crscardellino/orbis-demo-rel-class",
+    token=os.getenv("HF_TOKEN"),
 )
 
 st.set_page_config(layout="wide")
@@ -39,9 +42,7 @@ if text:
 
     st.markdown("#### Visualization of the Argumentative Components")
 
-    results = {
-        "text": text
-    }
+    results = {"text": text}
     results["argumentative_components"] = [
         result for result in argumentative_components_pipeline(text) if result["score"] >= 0.75
     ]
@@ -56,8 +57,9 @@ if text:
         [
             {
                 "text": results["argumentative_components"][i]["text"],
-                "text_pair": results["argumentative_components"][j]["text"]
-            } for i, j in pair_indices
+                "text_pair": results["argumentative_components"][j]["text"],
+            }
+            for i, j in pair_indices
         ]
     )
     results["argumentative_structure"] = []
@@ -65,23 +67,26 @@ if text:
     for rid, relation in enumerate(relations):
         if relation["label"] != "noRel" and relation["score"] >= 0.75:
             src, tgt = pair_indices[rid]
-            results["argumentative_structure"].append({
-                "source": results["argumentative_components"][src],
-                "target": results["argumentative_components"][tgt],
-                "label": relation["label"],
-                "score": relation["score"]
-            })
+            results["argumentative_structure"].append(
+                {
+                    "source": results["argumentative_components"][src],
+                    "target": results["argumentative_components"][tgt],
+                    "label": relation["label"],
+                    "score": relation["score"],
+                }
+            )
 
-    text_highlighter(
+    highlighted_text = text_highlighter(
         text=text,
         labels=list(LABELS.items()),
         annotations=[
             {
                 "start": argumentative_component["start"],
                 "end": argumentative_component["end"],
-                "tag": argumentative_component["label"]
-            } for argumentative_component in results["argumentative_components"]
-        ]
+                "tag": argumentative_component["label"],
+            }
+            for argumentative_component in results["argumentative_components"]
+        ],
     )
 
     st.markdown("#### Visualization of the Argumentative Structure")
@@ -98,7 +103,7 @@ if text:
                 title=src["text"],
                 label=src["label"],
                 color=LABELS[src["label"]],
-                shape="dot"
+                shape="dot",
             )
             nodes.append(src_node)
             added_nodes.add(src["id"])
@@ -109,7 +114,7 @@ if text:
                 title=tgt["text"],
                 label=tgt["label"],
                 color=LABELS[tgt["label"]],
-                shape="dot"
+                shape="dot",
             )
             nodes.append(tgt_node)
             added_nodes.add(tgt["id"])
@@ -118,15 +123,11 @@ if text:
             source=src["id"],
             target=tgt["id"],
             color="green" if relation["label"] == "Support" else "red",
-            label=relation["label"]
+            label=relation["label"],
         )
         edges.append(edge)
 
-    graph = agraph(
-        nodes,
-        edges,
-        Config(physics=False, width=1500)
-    )
+    graph = agraph(nodes, edges, Config(physics=False, width=1500))
 
     st.markdown("#### Results in JSON")
     st.json(results, expanded=False)
