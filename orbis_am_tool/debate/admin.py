@@ -4,23 +4,24 @@ from debate.models import Source, Debate, Author, Statement
 
 
 class StatementInline(admin.StackedInline):
+    readonly_fields = ("identifier",)
     model = Statement
     extra = 0
 
 
-class SlugModelAdmin(admin.ModelAdmin):
+class AbstractSlugModelAdmin(admin.ModelAdmin):
     readonly_fields = ("identifier", "slug")
 
 
-class SourceAdmin(SlugModelAdmin):
+class SourceAdmin(AbstractSlugModelAdmin):
     pass
 
 
-class AuthoAdmin(SlugModelAdmin):
+class AuthoAdmin(AbstractSlugModelAdmin):
     pass
 
 
-class DebateAdmin(SlugModelAdmin):
+class DebateAdmin(AbstractSlugModelAdmin):
     inlines = [StatementInline]
 
 

@@ -1,11 +1,12 @@
 import xxhash
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
 
 
-class SlugAbstractModel(models.Model):
+class AbstractSlugModel(models.Model):
     """
     An abstract model that has an identifier, name and slug. It uses the
     identifier for internal manipulation (to avoid displaying the DB identifier)
@@ -61,7 +62,7 @@ class SlugAbstractModel(models.Model):
         super().save(*args, **kwargs)
 
 
-class Source(SlugAbstractModel):
+class Source(AbstractSlugModel):
     """
     Source for debates. It can be the BCause app, an ORBIS Pilot event, a
     dataset.
@@ -74,7 +75,7 @@ class Source(SlugAbstractModel):
     description = models.TextField(blank=True, help_text="Description of the source")
 
 
-class Debate(SlugAbstractModel):
+class Debate(AbstractSlugModel):
     """
     Debate model. Has information on the general debate that is being discussed.
     A single debate can have multiple different arguments that are related with
@@ -107,7 +108,7 @@ class Debate(SlugAbstractModel):
     )
 
 
-class Author(SlugAbstractModel):
+class Author(AbstractSlugModel):
     """
     The author of an statement. It's usually identified by a unique anonymous ID.
     Is useful to keep track of authors across different debates.
@@ -139,9 +140,20 @@ class Statement(models.Model):
 
     class StatementType(models.TextChoices):
         POSITION = "POS", "Position"  # Position over the debate
-        SUPPORTING_ARGUMENT = "SUP", "Supporting Argument"  # Argument in favor of a position
         ATTACKING_ARGUMENT = "ATT", "Attacking Argument"  # Argument against a position
+        SUPPORTING_ARGUMENT = "SUP", "Supporting Argument"  # Argument in favor of a position
 
+    identifier = models.CharField(
+        max_length=16,
+        unique=True,
+        blank=True,
+        editable=False,
+        help_text=(
+            "An identifier that is a hash of: "
+            "`slugify(self.statement)+self.debate.identifier+self.author.identifier`. "
+            "It's created when the model is saved."
+        ),
+    )
     statement = models.TextField(help_text="The argumentative statement done.")
     debate = models.ForeignKey(
         Debate, on_delete=models.CASCADE, help_text="The debate this statement is part of."
@@ -168,3 +180,29 @@ class Statement(models.Model):
         return (
             f'{self.get_statement_type_display()} statement over "{self.debate}" by {self.author}'
         )
+
+    def clean(self):
+        """
+        Validates that there's a ``related_to`` argument when the
+        ``statement_type`` is equal to ``SUP`` or ``ATT`` and such
+        ``related_to`` is of type ``POS``.
+        """
+        if self.statement_type != self.StatementType.POSITION and (
+            self.related_to is None or self.related_to.statement_type != self.StatementType.POSITION
+        ):
+            raise ValidationError(
+                "You need to assign a relation to a Position statement "
+                "from this non Position statement."
+            )
+
+    def save(self, *args, **kwargs):
+        """
+        Override save function to create an identifier from the combination of
+        slugify(self.statement)+self.debate.identifier+self.author.identifier
+        """
+        if not self.id:
+            # Only if there isn't a saved instance of the model, to avoid
+            # overwriting the identifier and keep it the same
+            slug = f"{slugify(self.statement)}+{self.debate.identifier}+{self.author.identifier}"
+            self.identifier = xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
+        super().save(*args, **kwargs)
