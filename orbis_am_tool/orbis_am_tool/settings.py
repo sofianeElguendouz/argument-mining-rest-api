@@ -40,7 +40,8 @@ DJANGO_APPS = [
 ]
 
 LOCAL_APPS = [
-    "debate.apps.DebateConfig"
+    "argmining.apps.ArgminingConfig",
+    "debate.apps.DebateConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
