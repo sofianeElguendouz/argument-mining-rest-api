@@ -101,6 +101,7 @@ class Debate(SlugAbstractModel):
         Source,
         on_delete=models.CASCADE,
         null=True,
+        blank=True,
         related_name="debates",
         help_text="A source for the debate, in case it has one.",
     )
@@ -121,6 +122,13 @@ class Author(SlugAbstractModel):
             "is useful to identify the author (e.g. a combination of the name and other things)."
         ),
     )
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        help_text="The user associated with the author, if the author isn't anonymous",
+    )
 
 
 class Statement(models.Model):
@@ -130,11 +138,14 @@ class Statement(models.Model):
     """
 
     class StatementType(models.TextChoices):
-        POSITION = "POS", "Position"
+        POSITION = "POS", "Position"  # Position over the debate
         SUPPORTING_ARGUMENT = "SUP", "Supporting Argument"  # Argument in favor of a position
         ATTACKING_ARGUMENT = "ATT", "Attacking Argument"  # Argument against a position
 
     statement = models.TextField(help_text="The argumentative statement done.")
+    debate = models.ForeignKey(
+        Debate, on_delete=models.CASCADE, help_text="The debate this statement is part of."
+    )
     author = models.ForeignKey(
         Author, on_delete=models.CASCADE, help_text="The author of the statement"
     )
@@ -145,9 +156,15 @@ class Statement(models.Model):
         "Statement",
         on_delete=models.CASCADE,
         null=True,
+        blank=True,
         help_text=(
             "Another statement that this statement is related to. "
             "It only makes sense for statements of type SUPPORTING_ARGUMENT or ATTACKING_ARGUMENT. "
         ),
         related_name="related_statements",
     )
+
+    def __str__(self):
+        return (
+            f'{self.get_statement_type_display()} statement over "{self.debate}" by {self.author}'
+        )
