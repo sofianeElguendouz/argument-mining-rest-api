@@ -46,6 +46,14 @@ class ArgumentativeComponent(models.Model):
         choices=ArgumentativeComponentLabel,
         help_text="The label for this argumentative component.",
     )
+    score = models.FloatField(
+        blank=True,
+        null=True,
+        help_text=(
+            "Score (between 0 and 1) given by an automatic model to the classification label. "
+            "It's useful to get a general idea how certain is the model about a prediction."
+        )
+    )
 
     def __str__(self):
         return f"{self.get_label_display()} component in {self.statement}"
@@ -116,6 +124,14 @@ class ArgumentativeRelation(models.Model):
         max_length=3,
         choices=ArgumentativeRelationLabel,
         help_text="The type of relation between the components.",
+    )
+    score = models.FloatField(
+        blank=True,
+        null=True,
+        help_text=(
+            "Score (between 0 and 1) given by an automatic model to the classification label. "
+            "It's useful to get a general idea how certain is the model about a prediction."
+        )
     )
 
     class Meta:
