@@ -44,7 +44,9 @@ LOCAL_APPS = [
     "debate.apps.DebateConfig",
 ]
 
-INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
+THIRDPARTY_APPS = ["rest_framework"]
+
+INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS + THIRDPARTY_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
