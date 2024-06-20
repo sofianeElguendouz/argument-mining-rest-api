@@ -153,14 +153,22 @@ class Statement(models.Model):
     )
     statement = models.TextField(help_text="The argumentative statement done.")
     debate = models.ForeignKey(
-        Debate, on_delete=models.CASCADE, help_text="The debate this statement is part of."
+        Debate,
+        on_delete=models.CASCADE,
+        help_text="The debate this statement is part of.",
+        related_name="statements",
     )
     author = models.ForeignKey(
-        Author, on_delete=models.CASCADE, help_text="The author of the statement"
+        Author,
+        on_delete=models.CASCADE,
+        help_text="The author of the statement",
+        related_name="statements",
     )
     statement_type = models.CharField(
-        choices=StatementType, max_length=3, blank=True,
-        help_text="The type of statement being made."
+        choices=StatementType,
+        max_length=3,
+        blank=True,
+        help_text="The type of statement being made.",
     )
     related_to = models.ForeignKey(
         "Statement",

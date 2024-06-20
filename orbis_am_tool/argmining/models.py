@@ -34,6 +34,7 @@ class ArgumentativeComponent(models.Model):
         Statement,
         on_delete=models.CASCADE,
         help_text=("Position statement this is an Argumentative Component of"),
+        related_name="argumentative_components",
     )
     start = models.PositiveIntegerField(
         help_text=("The start of the argumentative component in the statement")
@@ -52,7 +53,7 @@ class ArgumentativeComponent(models.Model):
         help_text=(
             "Score (between 0 and 1) given by an automatic model to the classification label. "
             "It's useful to get a general idea how certain is the model about a prediction."
-        )
+        ),
     )
 
     def __str__(self):
@@ -129,7 +130,7 @@ class ArgumentativeRelation(models.Model):
         help_text=(
             "Score (between 0 and 1) given by an automatic model to the classification label. "
             "It's useful to get a general idea how certain is the model about a prediction."
-        )
+        ),
     )
 
     class Meta:
