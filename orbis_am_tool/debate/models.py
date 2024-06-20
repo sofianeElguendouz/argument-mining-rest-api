@@ -1,7 +1,6 @@
 import xxhash
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
 
@@ -48,18 +47,16 @@ class AbstractSlugModel(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
+    def clean(self):
         """
-        Override save function to create a slug from the name of the model and
-        an identifier from the slug if the model hasn't been saved into the DB
-        yet.
+        During clean, create a slug from the name of the model and an identifier
+        from the slug if the model hasn't been saved into the DB yet.
         """
         if not self.id:
             # Only if there isn't a saved instance of the model, to avoid
             # overwriting the slug/identifier and keep it the same
             self.slug = slugify(self.name)
             self.identifier = xxhash.xxh3_64_hexdigest(self.slug, seed=settings.XXHASH_SEED)
-        super().save(*args, **kwargs)
 
 
 class Source(AbstractSlugModel):
@@ -100,7 +97,7 @@ class Debate(AbstractSlugModel):
     )
     source = models.ForeignKey(
         Source,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="debates",
@@ -125,7 +122,7 @@ class Author(AbstractSlugModel):
     )
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         help_text="The user associated with the author, if the author isn't anonymous",
@@ -162,11 +159,12 @@ class Statement(models.Model):
         Author, on_delete=models.CASCADE, help_text="The author of the statement"
     )
     statement_type = models.CharField(
-        choices=StatementType, max_length=3, help_text="The type of statement being made."
+        choices=StatementType, max_length=3, blank=True,
+        help_text="The type of statement being made."
     )
     related_to = models.ForeignKey(
         "Statement",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         help_text=(
@@ -183,21 +181,7 @@ class Statement(models.Model):
 
     def clean(self):
         """
-        Validates that there's a ``related_to`` argument when the
-        ``statement_type`` is equal to ``SUP`` or ``ATT`` and such
-        ``related_to`` is of type ``POS``.
-        """
-        if self.statement_type != self.StatementType.POSITION and (
-            self.related_to is None or self.related_to.statement_type != self.StatementType.POSITION
-        ):
-            raise ValidationError(
-                "You need to assign a relation to a Position statement "
-                "from this non Position statement."
-            )
-
-    def save(self, *args, **kwargs):
-        """
-        Override save function to create an identifier from the combination of
+        During clean create an identifier from the combination of
         slugify(self.statement)+self.debate.identifier+self.author.identifier
         """
         if not self.id:
@@ -205,4 +189,3 @@ class Statement(models.Model):
             # overwriting the identifier and keep it the same
             slug = f"{slugify(self.statement)}+{self.debate.identifier}+{self.author.identifier}"
             self.identifier = xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
-        super().save(*args, **kwargs)

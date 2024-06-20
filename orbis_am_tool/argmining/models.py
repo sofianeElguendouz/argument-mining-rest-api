@@ -62,6 +62,10 @@ class ArgumentativeComponent(models.Model):
         """
         Check that the ``start`` and the ``end`` have some length, are ordered,
         and are inside the statement.
+
+        If it's valid, and it hasn't been saved yet, create an identifier from
+        the combination of:
+        slugify(self.statement[self.start:self.end])+self.statement.identifier
         """
         if self.start >= self.end:
             raise ValidationError(
@@ -73,17 +77,11 @@ class ArgumentativeComponent(models.Model):
                 "statement."
             )
 
-    def save(self, *args, **kwargs):
-        """
-        Override save function to create an identifier from the combination of
-        slugify(self.statement[self.start:self.end])+self.statement.identifier
-        """
         if not self.id:
             # Only if there isn't a saved instance of the model, to avoid
             # overwriting the identifier and keep it the same
             slug = f"{slugify(self.statement.statement[self.start:self.end])}+{self.statement.identifier}"  # noqa
             self.identifier = xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
-        super().save(*args, **kwargs)
 
 
 class ArgumentativeRelation(models.Model):
