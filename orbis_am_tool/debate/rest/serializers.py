@@ -19,7 +19,10 @@ class DebateSerializer(serializers.HyperlinkedModelSerializer):
         view_name="debate-detail", read_only=True, lookup_field="identifier"
     )
     statements = serializers.HyperlinkedRelatedField(
-        many=True, view_name="statement-detail", read_only=True, lookup_field="identifier"
+        many=True,
+        view_name="statement-detail",
+        read_only=True,
+        lookup_field="identifier",
     )
 
     class Meta:
@@ -56,7 +59,10 @@ class StatementSerializer(serializers.HyperlinkedModelSerializer):
         view_name="statement-detail", read_only=True, lookup_field="identifier"
     )
     related_statements = serializers.HyperlinkedRelatedField(
-        many=True, view_name="statement-detail", read_only=True, lookup_field="identifier"
+        many=True,
+        view_name="statement-detail",
+        read_only=True,
+        lookup_field="identifier",
     )
 
     class Meta:

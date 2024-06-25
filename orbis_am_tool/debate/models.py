@@ -136,9 +136,18 @@ class Statement(models.Model):
     """
 
     class StatementType(models.TextChoices):
-        POSITION = "POS", "Position"  # Position over the debate
-        ATTACKING_ARGUMENT = "ATT", "Attacking Argument"  # Argument against a position
-        SUPPORTING_ARGUMENT = "SUP", "Supporting Argument"  # Argument in favor of a position
+        POSITION = (
+            "POS",
+            "Position",
+        )  # Position over the debate
+        ATTACKING_ARGUMENT = (
+            "ATT",
+            "Attacking Argument",
+        )  # Argument against a position
+        SUPPORTING_ARGUMENT = (
+            "SUP",
+            "Supporting Argument",
+        )  # Argument in favor of a position
 
     identifier = models.CharField(
         max_length=16,
@@ -177,7 +186,7 @@ class Statement(models.Model):
         blank=True,
         help_text=(
             "Another statement that this statement is related to. "
-            "It only makes sense for statements of type SUPPORTING_ARGUMENT or ATTACKING_ARGUMENT. "
+            "It only makes sense for statements of type SUPPORTING_ARGUMENT or ATTACKING_ARGUMENT."
         ),
         related_name="related_statements",
     )
