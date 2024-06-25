@@ -11,4 +11,6 @@ router.register(r"source", views.SourceView, basename="source")
 router.register(r"statement", views.StatementView, basename="statement")
 
 
-urlpatterns = [path("", include(router.urls))]
+urlpatterns = [
+    path("", include(router.urls)),
+]

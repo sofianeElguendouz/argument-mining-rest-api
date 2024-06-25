@@ -1,22 +1,31 @@
 from rest_framework import serializers
 
+from argmining.rest.serializers import ArgumentativeComponentSerializer
 from debate.models import Author, Debate, Source, Statement
 
 
-class SourceSerializer(serializers.ModelSerializer):
+class SourceSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        view_name="source-detail", read_only=True, lookup_field="identifier"
+        view_name="source-detail",
+        read_only=True,
+        lookup_field="identifier",
     )
 
     class Meta:
         model = Source
-        fields = ["url", "slug", "name", "description"]
+        exclude = ["identifier"]
 
 
 class DebateSerializer(serializers.HyperlinkedModelSerializer):
-    source = SourceSerializer(read_only=True)
+    source = serializers.HyperlinkedRelatedField(
+        view_name="source-detail",
+        read_only=True,
+        lookup_field="identifier",
+    )
     url = serializers.HyperlinkedIdentityField(
-        view_name="debate-detail", read_only=True, lookup_field="identifier"
+        view_name="debate-detail",
+        read_only=True,
+        lookup_field="identifier",
     )
     statements = serializers.HyperlinkedRelatedField(
         many=True,
@@ -27,33 +36,35 @@ class DebateSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Debate
-        fields = ["url", "slug", "name", "summary", "source", "statements"]
-        lookup_field = "identifier"
-        lookup_url_kwarg = "identifier"
+        exclude = ["identifier"]
 
 
-class AuthorSerializer(serializers.ModelSerializer):
+class AuthorSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name="author-detail", read_only=True, lookup_field="identifier"
     )
 
     class Meta:
         model = Author
-        fields = [
-            "url",
-            "slug",
-            "name",
-        ]
+        exclude = ["identifier"]
 
 
 class StatementSerializer(serializers.HyperlinkedModelSerializer):
     debate = serializers.HyperlinkedRelatedField(
-        view_name="debate-detail", read_only=True, lookup_field="identifier"
+        view_name="debate-detail",
+        read_only=True,
+        lookup_field="identifier",
     )
     url = serializers.HyperlinkedIdentityField(
-        view_name="statement-detail", read_only=True, lookup_field="identifier"
+        view_name="statement-detail",
+        read_only=True,
+        lookup_field="identifier",
     )
-    author = AuthorSerializer(read_only=True)
+    author = serializers.HyperlinkedRelatedField(
+        view_name="author-detail",
+        read_only=True,
+        lookup_field="identifier",
+    )
     statement_type = serializers.CharField(source="get_statement_type_display")
     related_to = serializers.HyperlinkedRelatedField(
         view_name="statement-detail", read_only=True, lookup_field="identifier"
@@ -64,16 +75,11 @@ class StatementSerializer(serializers.HyperlinkedModelSerializer):
         read_only=True,
         lookup_field="identifier",
     )
+    argumentative_components = ArgumentativeComponentSerializer(
+        many=True,
+        read_only=True,
+    )
 
     class Meta:
         model = Statement
-        fields = [
-            "url",
-            "debate",
-            "author",
-            "statement",
-            "statement_type",
-            "related_to",
-            "related_statements",
-        ]
-        lookup_field = "identifier"
+        exclude = ["identifier"]

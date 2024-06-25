@@ -9,22 +9,22 @@ class StatementInline(admin.StackedInline):
     extra = 0
 
 
-class AbstractSlugModelAdmin(admin.ModelAdmin):
-    readonly_fields = ("identifier", "slug")
+class AbstractModelAdmin(admin.ModelAdmin):
+    readonly_fields = ("identifier",)
 
 
-class SourceAdmin(AbstractSlugModelAdmin):
+class SourceAdmin(AbstractModelAdmin):
     pass
 
 
-class AuthoAdmin(AbstractSlugModelAdmin):
+class AuthorAdmin(AbstractModelAdmin):
     pass
 
 
-class DebateAdmin(AbstractSlugModelAdmin):
+class DebateAdmin(AbstractModelAdmin):
     inlines = [StatementInline]
 
 
 admin.site.register(Source, SourceAdmin)
-admin.site.register(Author, AuthoAdmin)
+admin.site.register(Author, AuthorAdmin)
 admin.site.register(Debate, DebateAdmin)

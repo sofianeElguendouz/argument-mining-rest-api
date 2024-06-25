@@ -5,14 +5,12 @@ from django.db import models
 from django.utils.text import slugify
 
 
-class AbstractSlugModel(models.Model):
+class AbstractBaseModel(models.Model):
     """
-    An abstract model that has an identifier, name and slug. It uses the
-    identifier for internal manipulation (to avoid displaying the DB identifier)
-    and the slug as a way to represent the name in a URL friendly way for REST
-    APIs. When the model is saved, if the instance doesn't exists in the DB, it
-    will create the slug from the name and the identifier from a hash of the
-    slug.
+    An abstract model that has an identifier and a name. It uses the identifier
+    for internal manipulation (to avoid displaying the DB identifier).  When the
+    model is saved, if the instance doesn't exists in the DB, it will create the
+    identifier from a hash of a slugified version of the name
     """
 
     identifier = models.CharField(
@@ -21,24 +19,15 @@ class AbstractSlugModel(models.Model):
         blank=True,
         editable=False,
         help_text=(
-            "An identifier that is a hash of the slug, for internal use. "
-            "It's created from the slug when the model is saved."
+            "An identifier that is a hash of the name. "
+            "It's created from the slug of the name when the model is saved. "
+            "It's useful to avoid exposing the internal PK to the public."
         ),
     )
     name = models.CharField(
         max_length=200,
         unique=True,
         help_text="The name of the model. Must be unique.",
-    )
-    slug = models.SlugField(
-        max_length=200,
-        blank=True,
-        unique=True,
-        editable=False,
-        help_text=(
-            "A slug representation of the name of the model. "
-            "It's created from the name of the source when the model is saved."
-        ),
     )
 
     class Meta:
@@ -50,16 +39,16 @@ class AbstractSlugModel(models.Model):
     def clean(self):
         """
         During clean, create a slug from the name of the model and an identifier
-        from the slug if the model hasn't been saved into the DB yet.
+        from that slug if the model hasn't been saved into the DB yet.
         """
         if not self.id:
             # Only if there isn't a saved instance of the model, to avoid
-            # overwriting the slug/identifier and keep it the same
-            self.slug = slugify(self.name)
-            self.identifier = xxhash.xxh3_64_hexdigest(self.slug, seed=settings.XXHASH_SEED)
+            # overwriting the identifier and keep it the same
+            slug = slugify(self.name)
+            self.identifier = xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
 
 
-class Source(AbstractSlugModel):
+class Source(AbstractBaseModel):
     """
     Source for debates. It can be the BCause app, an ORBIS Pilot event, a
     dataset.
@@ -72,7 +61,7 @@ class Source(AbstractSlugModel):
     description = models.TextField(blank=True, help_text="Description of the source")
 
 
-class Debate(AbstractSlugModel):
+class Debate(AbstractBaseModel):
     """
     Debate model. Has information on the general debate that is being discussed.
     A single debate can have multiple different arguments that are related with
@@ -105,7 +94,7 @@ class Debate(AbstractSlugModel):
     )
 
 
-class Author(AbstractSlugModel):
+class Author(AbstractBaseModel):
     """
     The author of an statement. It's usually identified by a unique anonymous ID.
     Is useful to keep track of authors across different debates.
@@ -157,7 +146,8 @@ class Statement(models.Model):
         help_text=(
             "An identifier that is a hash of: "
             "`slugify(self.statement)+self.debate.identifier+self.author.identifier`. "
-            "It's created when the model is saved."
+            "It's created when the model is saved. "
+            "It's useful to avoid exposing the internal PK to the public."
         ),
     )
     statement = models.TextField(help_text="The argumentative statement done.")
