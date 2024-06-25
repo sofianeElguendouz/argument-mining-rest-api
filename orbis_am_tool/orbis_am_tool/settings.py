@@ -46,6 +46,7 @@ LOCAL_APPS = [
 
 THIRDPARTY_APPS = [
     "rest_framework",
+    "drf_spectacular",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS + THIRDPARTY_APPS
@@ -132,6 +133,19 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# DRF Spectacular (OpenAPI Documentation)
+SPECTACULAR_SETTINGS = {
+    "TITLE": "ORBIS Argument Mining Tool API",
+    "DESCRIPTION": "Argumentation mining tool for the ORBIS project.",
+    "VERSION": "0.0.1",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
 
 # XXHASH
 XXHASH_SEED = 42
