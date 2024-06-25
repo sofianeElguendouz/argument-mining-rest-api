@@ -27,7 +27,8 @@ class ArgumentativeComponent(models.Model):
         help_text=(
             "An identifier that is a hash of: "
             "``slugify(self.statement.statement[self.start:self.end])+self.statement.identifier. "
-            "It's created when the model is saved."
+            "It's created when the model is saved. "
+            "It's useful to avoid exposing the internal PK to the public."
         ),
     )
     statement = models.ForeignKey(
@@ -89,8 +90,8 @@ class ArgumentativeRelation(models.Model):
     """
     Argumentative relation model. Holds the information of two related
     argumentative components about the label (i.e., attack or support) and the
-    direction (i.e. what is the argumentative component that is having the
-    action of attack/support and which one is the receiving).
+    direction (i.e. what is the source argumentative component in the relation
+    and what is the target component).
     This represents an edge in a directed graph.
     """
 
@@ -99,25 +100,25 @@ class ArgumentativeRelation(models.Model):
         SUPPORT = "SUP", "Support"
 
     # Careful with the related names in these foreign keys:
-    # - `ArgumentativeComponent.from_relations` are all the relations that the
-    #   component is part of as the start of the edge.
-    component_from = models.ForeignKey(
+    # - `ArgumentativeComponent.relations_as_source` are all the relations that
+    #   the component is part of as the start of the edge.
+    source = models.ForeignKey(
         ArgumentativeComponent,
         on_delete=models.CASCADE,
         help_text=(
-            "The argumentative component that is the start of the relation. I.e., 'A' in 'A'->'B'."
+            "The argumentative component that is the source of the relation. I.e., 'A' in 'A'->'B'."
         ),
-        related_name="from_relations",
+        related_name="relations_as_source",
     )
-    # - `ArgumentativeComponent.to_relations` are all the relations that the
-    #   component is part of the end of the edge
-    component_to = models.ForeignKey(
+    # - `ArgumentativeComponent.relations_as_target` are all the relations that
+    #   the component is part of the end of the edge
+    target = models.ForeignKey(
         ArgumentativeComponent,
         on_delete=models.CASCADE,
         help_text=(
-            "The argumentative component that is the end of the relation. I.e., 'B' in 'A'->'B'."
+            "The argumentative component that is the target of the relation. I.e., 'B' in 'A'->'B'."
         ),
-        related_name="to_relations",
+        related_name="relations_as_target",
     )
     label = models.CharField(
         max_length=3,
@@ -134,16 +135,14 @@ class ArgumentativeRelation(models.Model):
     )
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["component_from", "component_to"], name="unique_edge")
-        ]
+        constraints = [models.UniqueConstraint(fields=["source", "target"], name="unique_edge")]
 
     def __str__(self):
-        return f"{self.get_label_display()} relation between {self.component_from} and {self.component_to}"  # noqa
+        return f"{self.get_label_display()} relation between {self.source} and {self.target}"
 
     def clean(self):
         """
         Validate that the from and to components are different.
         """
-        if self.component_from == self.component_to:
-            raise ValidationError("The from and to components can't be the same")
+        if self.source == self.target:
+            raise ValidationError("The source and target components can't be the same")
