@@ -50,8 +50,10 @@ class AbstractBaseModel(models.Model):
 
 class Source(AbstractBaseModel):
     """
-    Source for debates. It can be the BCause app, an ORBIS Pilot event, a
-    dataset.
+    Source for debates.
+
+    It can be the BCause app, an ORBIS Pilot event, a dataset. It only makes
+    sense for internal purposes.
     """
 
     # Override `name` to add help_text
@@ -63,9 +65,11 @@ class Source(AbstractBaseModel):
 
 class Debate(AbstractBaseModel):
     """
-    Debate model. Has information on the general debate that is being discussed.
-    A single debate can have multiple different arguments that are related with
-    each other.
+    Debate model.
+
+    Has information on the general debate that is being discussed.  A single
+    debate can have multiple different statements that are related with each
+    other.
     """
 
     # Override `name` to add help_text
@@ -96,8 +100,10 @@ class Debate(AbstractBaseModel):
 
 class Author(AbstractBaseModel):
     """
-    The author of an statement. It's usually identified by a unique anonymous ID.
-    Is useful to keep track of authors across different debates.
+    The author of an Statement.
+
+    It's usually identified by a unique anonymous ID.  Is useful to keep track
+    of authors across different debates.
     """
 
     # Override `name` to add help_text
@@ -120,8 +126,11 @@ class Author(AbstractBaseModel):
 
 class Statement(models.Model):
     """
-    A statement is done by someone (an author), and is part of a Debate.  The
-    statement can have different types: a position, an argument, etc.
+    A statement is done by someone (an author), and is part of a Debate.
+
+    The statement can have different types: a position, an argument, etc.  It's
+    the argumentative text that informs the stance of a single person regarding
+    the debate it's referring to.
     """
 
     class StatementType(models.TextChoices):
