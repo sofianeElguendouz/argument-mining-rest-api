@@ -15,7 +15,6 @@ class AuthorView(generics.RetrieveAPIView):
     queryset = Author.objects.all()
     serializer_class = serializers.AuthorSerializer
     lookup_field = "identifier"
-    lookup_value_regex = "[0-9a-f]{16}"
 
 
 class DebateView(generics.RetrieveAPIView):
@@ -29,7 +28,6 @@ class DebateView(generics.RetrieveAPIView):
     queryset = Debate.objects.all()
     serializer_class = serializers.DebateSerializer
     lookup_field = "identifier"
-    lookup_value_regex = "[0-9a-f]{16}"
 
 
 class SourceView(generics.RetrieveAPIView):
@@ -43,7 +41,6 @@ class SourceView(generics.RetrieveAPIView):
     queryset = Source.objects.all()
     serializer_class = serializers.SourceSerializer
     lookup_field = "identifier"
-    lookup_value_regex = "[0-9a-f]{16}"
 
 
 class StatementView(generics.RetrieveAPIView):
@@ -57,4 +54,3 @@ class StatementView(generics.RetrieveAPIView):
     queryset = Statement.objects.all()
     serializer_class = serializers.StatementSerializer
     lookup_field = "identifier"
-    lookup_value_regex = "[0-9a-f]{16}"

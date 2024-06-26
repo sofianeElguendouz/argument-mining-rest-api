@@ -17,4 +17,3 @@ class ArgumentativeComponentView(generics.RetrieveAPIView):
     queryset = ArgumentativeComponent.objects.all()
     serializer_class = serializers.ArgumentativeComponentSerializer
     lookup_field = "identifier"
-    lookup_value_regex = "[0-9a-f]{16}"
