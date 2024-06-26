@@ -4,15 +4,23 @@ from argmining.models import ArgumentativeComponent, ArgumentativeRelation
 
 
 class ArgumentativeRelationSerializer(serializers.ModelSerializer):
+    """
+    Serializer class for the argumentative relations.
+
+    This is a ``ModelSerializer``, not a ``HyperlinkedModelSerializer``, as the
+    only way to access the relations is through the argumentative component API,
+    via the ``ArgumentativeComponentSerializer`` defined below.
+    """
+
     label = serializers.CharField(source="get_label_display")
-    source_component_identifier = serializers.HyperlinkedRelatedField(
-        view_name="argumentativecomponent-detail",
+    source_component = serializers.HyperlinkedRelatedField(
+        view_name="component-detail",
         read_only=True,
         lookup_field="identifier",
         source="source",
     )
-    target_component_identifier = serializers.HyperlinkedRelatedField(
-        view_name="argumentativecomponent-detail",
+    target_component = serializers.HyperlinkedRelatedField(
+        view_name="component-detail",
         read_only=True,
         lookup_field="identifier",
         source="target",
@@ -20,12 +28,30 @@ class ArgumentativeRelationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ArgumentativeRelation
-        exclude = ["id"]
+        fields = [
+            "label",
+            "source_component",
+            "target_component",
+        ]
 
 
 class ArgumentativeComponentSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    Serializer class for the argumentative components of a statement.
+
+    This is the only model that isn't accessed through the ``/api/debate`` REST
+    API, although its part of the
+    ``debate.rest.serializers.StatementSerializer``.
+
+    Unlike relations, which only make sense within the context of a pair of
+    argumentative components, the components make sense to have their own REST
+    API to be accessed directly, although it's debatable whether they should be
+    accessed through their own REST API (i.e., the ``/api/argminin``) or if they
+    can be a part of the ``/api/debate`` REST API.
+    """
+
     url = serializers.HyperlinkedIdentityField(
-        view_name="argumentativecomponent-detail", read_only=True, lookup_field="identifier"
+        view_name="component-detail", read_only=True, lookup_field="identifier"
     )
     label = serializers.CharField(source="get_label_display")
     statement = serializers.HyperlinkedRelatedField(
@@ -39,4 +65,13 @@ class ArgumentativeComponentSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = ArgumentativeComponent
-        exclude = ["identifier"]
+        fields = [
+            "url",
+            "statement",
+            "label",
+            "start",
+            "end",
+            "score",
+            "relations_as_source",
+            "relations_as_target",
+        ]
