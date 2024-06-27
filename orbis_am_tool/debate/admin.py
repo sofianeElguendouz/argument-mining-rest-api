@@ -9,19 +9,19 @@ class StatementInline(admin.StackedInline):
     extra = 0
 
 
-class AbstractModelAdmin(admin.ModelAdmin):
+class AbstractNameModelAdmin(admin.ModelAdmin):
     readonly_fields = ("identifier",)
 
 
-class SourceAdmin(AbstractModelAdmin):
+class SourceAdmin(AbstractNameModelAdmin):
     pass
 
 
-class AuthorAdmin(AbstractModelAdmin):
+class AuthorAdmin(AbstractNameModelAdmin):
     pass
 
 
-class DebateAdmin(AbstractModelAdmin):
+class DebateAdmin(AbstractNameModelAdmin):
     inlines = [StatementInline]
 
 

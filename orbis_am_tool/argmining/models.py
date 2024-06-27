@@ -6,9 +6,10 @@ from django.db import models
 from django.utils.text import slugify
 
 from debate.models import Statement
+from utils.django import AbstractIdentifierModel
 
 
-class ArgumentativeComponent(models.Model):
+class ArgumentativeComponent(AbstractIdentifierModel):
     """
     Argumentative component model for a statement. It holds information about
     the label of the argumentative component (i.e., claim or premise), and the
@@ -74,30 +75,33 @@ class ArgumentativeComponent(models.Model):
                 "The end of the argumentative component can't be larger than the length of the "
                 "statement."
             )
+        super().clean()
 
-    def save(self, *args, **kwargs):
+    def build_identifier(self) -> str:
         """
-        Override save method.
+        Helper function to build an identifier.
 
-        If a model hasn't been saved yet, create an identifier from the
-        combination of:
+        I use a helper function because in some occasions is useful to have the
+        identifier prior to saving the model.
 
+        The identifier is a combination of:
         slugify(self.statement[self.start:self.end])+self.start:self.end+self.statement.identifier
 
         We require to have both the fraction of text of the statement and the
         start and end values because some fractions of text might be duplicated
         (i.e., have the same word), and we want to guarantee it being unique.
+
+        Returns
+        -------
+        str
+            The identifier.
         """
-        if not self.id:
-            # Only if there isn't a saved instance of the model, to avoid
-            # overwriting the identifier and keep it the same
-            slug = (
-                slugify(self.statement.statement[self.start : self.end])
-                + f"+{self.start}:{self.end}+"
-                + self.statement.identifier
-            )
-            self.identifier = xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
-        super().save(*args, **kwargs)
+        slug = (
+            slugify(self.statement.statement[self.start : self.end])
+            + f"+{self.start}:{self.end}+"
+            + self.statement.identifier
+        )
+        return xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
 
 
 class ArgumentativeRelation(models.Model):
@@ -160,3 +164,12 @@ class ArgumentativeRelation(models.Model):
         """
         if self.source == self.target:
             raise ValidationError("The source and target components can't be the same")
+
+    def save(self, *args, **kwargs):
+        """
+        Override save function
+
+        Run the full clean before saving
+        """
+        self.full_clean()
+        super().save(*args, **kwargs)

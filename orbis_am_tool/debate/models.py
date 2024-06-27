@@ -4,8 +4,10 @@ from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
 
+from utils.django import AbstractIdentifierModel
 
-class AbstractBaseModel(models.Model):
+
+class AbstractNameModel(AbstractIdentifierModel):
     """
     An abstract model that has an identifier and a name. It uses the identifier
     for internal manipulation (to avoid displaying the DB identifier).  When the
@@ -36,20 +38,22 @@ class AbstractBaseModel(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
+    def build_identifier(self) -> str:
         """
-        During save, create a slug from the name of the model and an identifier
-        from that slug if the model hasn't been saved into the DB yet.
+        Helper function to build the identifier
+
+        The identifier is created as the hash of the slug of the model's name
+        field.
+
+        Returns
+        -------
+        str
+            The identifier
         """
-        if not self.id:
-            # Only if there isn't a saved instance of the model, to avoid
-            # overwriting the identifier and keep it the same
-            slug = slugify(self.name)
-            self.identifier = xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
-        super().save(*args, **kwargs)
+        return xxhash.xxh3_64_hexdigest(slugify(self.name), seed=settings.XXHASH_SEED)
 
 
-class Source(AbstractBaseModel):
+class Source(AbstractNameModel):
     """
     Source for debates.
 
@@ -64,7 +68,7 @@ class Source(AbstractBaseModel):
     description = models.TextField(blank=True, help_text="Description of the source")
 
 
-class Debate(AbstractBaseModel):
+class Debate(AbstractNameModel):
     """
     Debate model.
 
@@ -99,7 +103,7 @@ class Debate(AbstractBaseModel):
     )
 
 
-class Author(AbstractBaseModel):
+class Author(AbstractNameModel):
     """
     The author of an Statement.
 
@@ -125,7 +129,7 @@ class Author(AbstractBaseModel):
     )
 
 
-class Statement(models.Model):
+class Statement(AbstractIdentifierModel):
     """
     A statement is done by someone (an author), and is part of a Debate.
 
@@ -187,14 +191,20 @@ class Statement(models.Model):
             f'{self.get_statement_type_display()} statement over "{self.debate}" by {self.author}'
         )
 
-    def save(self, *args, **kwargs):
+    def build_identifier(self) -> str:
         """
-        During save create an identifier from the combination of
+        Helper function to build an identifier.
+
+        I use a helper function because in some occasions is useful to have the
+        identifier prior to saving the model.
+
+        The identifier is a combination of:
         slugify(self.statement)+self.debate.identifier+self.author.identifier
+
+        Returns
+        -------
+        str
+            The identifier.
         """
-        if not self.id:
-            # Only if there isn't a saved instance of the model, to avoid
-            # overwriting the identifier and keep it the same
-            slug = f"{slugify(self.statement)}+{self.debate.identifier}+{self.author.identifier}"
-            self.identifier = xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
-        super().save(*args, **kwargs)
+        slug = f"{slugify(self.statement)}+{self.debate.identifier}+{self.author.identifier}"
+        return xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
