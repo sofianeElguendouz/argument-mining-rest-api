@@ -156,3 +156,8 @@ XXHASH_SEED = 42
 # with the `HF_TOKEN` variable set
 ARGUMENTS_COMPONENTS_MODEL = "orbis-marianne/deberta-v3-seq-tag"
 ARGUMENTS_RELATIONS_MODEL = "orbis-marianne/deberta-v3-rel-class"
+
+# Minimum scores to consider creating an argumentative component/relation when
+# running the model, to avoid models overcrowding the DB
+MINIMUM_COMPONENT_SCORE = 0.90
+MINIMUM_RELATION_SCORE = 0.90
