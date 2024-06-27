@@ -16,8 +16,8 @@ class ArgumentativeComponent(models.Model):
     """
 
     class ArgumentativeComponentLabel(models.TextChoices):
-        CLAIM = "CL", "Claim"
-        PREMISE = "PR", "Premise"
+        CLAIM = "Claim"
+        PREMISE = "Premise"
 
     identifier = models.CharField(
         max_length=16,
@@ -26,7 +26,7 @@ class ArgumentativeComponent(models.Model):
         editable=False,
         help_text=(
             "An identifier that is a hash of: "
-            "``slugify(self.statement.statement[self.start:self.end])+self.statement.identifier. "
+            "`slugify(self.statement.statement[self.start:self.end])+self.start:self.end+self.statement.identifier`. "  # noqa
             "It's created when the model is saved. "
             "It's useful to avoid exposing the internal PK to the public."
         ),
@@ -44,7 +44,7 @@ class ArgumentativeComponent(models.Model):
         help_text=("The end of the argumentative component in the statement")
     )
     label = models.CharField(
-        max_length=2,
+        max_length=10,
         choices=ArgumentativeComponentLabel,
         help_text="The label for this argumentative component.",
     )
@@ -64,10 +64,6 @@ class ArgumentativeComponent(models.Model):
         """
         Check that the ``start`` and the ``end`` have some length, are ordered,
         and are inside the statement.
-
-        If it's valid, and it hasn't been saved yet, create an identifier from
-        the combination of:
-        slugify(self.statement[self.start:self.end])+self.statement.identifier
         """
         if self.start >= self.end:
             raise ValidationError(
@@ -79,11 +75,29 @@ class ArgumentativeComponent(models.Model):
                 "statement."
             )
 
+    def save(self, *args, **kwargs):
+        """
+        Override save method.
+
+        If a model hasn't been saved yet, create an identifier from the
+        combination of:
+
+        slugify(self.statement[self.start:self.end])+self.start:self.end+self.statement.identifier
+
+        We require to have both the fraction of text of the statement and the
+        start and end values because some fractions of text might be duplicated
+        (i.e., have the same word), and we want to guarantee it being unique.
+        """
         if not self.id:
             # Only if there isn't a saved instance of the model, to avoid
             # overwriting the identifier and keep it the same
-            slug = f"{slugify(self.statement.statement[self.start:self.end])}+{self.statement.identifier}"  # noqa
+            slug = (
+                slugify(self.statement.statement[self.start : self.end])
+                + f"+{self.start}:{self.end}+"
+                + self.statement.identifier
+            )
             self.identifier = xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
+        super().save(*args, **kwargs)
 
 
 class ArgumentativeRelation(models.Model):
@@ -96,8 +110,8 @@ class ArgumentativeRelation(models.Model):
     """
 
     class ArgumentativeRelationLabel(models.TextChoices):
-        ATTACK = "ATT", "Attack"
-        SUPPORT = "SUP", "Support"
+        ATTACK = "Attack"
+        SUPPORT = "Support"
 
     # Careful with the related names in these foreign keys:
     # - `ArgumentativeComponent.relations_as_source` are all the relations that
@@ -121,7 +135,7 @@ class ArgumentativeRelation(models.Model):
         related_name="relations_as_target",
     )
     label = models.CharField(
-        max_length=3,
+        max_length=10,
         choices=ArgumentativeRelationLabel,
         help_text="The type of relation between the components.",
     )

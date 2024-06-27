@@ -36,9 +36,9 @@ class AbstractBaseModel(models.Model):
     def __str__(self):
         return self.name
 
-    def clean(self):
+    def save(self, *args, **kwargs):
         """
-        During clean, create a slug from the name of the model and an identifier
+        During save, create a slug from the name of the model and an identifier
         from that slug if the model hasn't been saved into the DB yet.
         """
         if not self.id:
@@ -46,6 +46,7 @@ class AbstractBaseModel(models.Model):
             # overwriting the identifier and keep it the same
             slug = slugify(self.name)
             self.identifier = xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
+        super().save(*args, **kwargs)
 
 
 class Source(AbstractBaseModel):
@@ -134,18 +135,9 @@ class Statement(models.Model):
     """
 
     class StatementType(models.TextChoices):
-        POSITION = (
-            "POS",
-            "Position",
-        )  # Position over the debate
-        ATTACKING_ARGUMENT = (
-            "ATT",
-            "Attacking Argument",
-        )  # Argument against a position
-        SUPPORTING_ARGUMENT = (
-            "SUP",
-            "Supporting Argument",
-        )  # Argument in favor of a position
+        POSITION = "Position"  # Position over the debate
+        ATTACK = "Attack"  # Argument against a position
+        SUPPORT = "Support"  # Argument in favor of a position
 
     identifier = models.CharField(
         max_length=16,
@@ -174,7 +166,7 @@ class Statement(models.Model):
     )
     statement_type = models.CharField(
         choices=StatementType,
-        max_length=3,
+        max_length=10,
         blank=True,
         help_text="The type of statement being made.",
     )
@@ -195,9 +187,9 @@ class Statement(models.Model):
             f'{self.get_statement_type_display()} statement over "{self.debate}" by {self.author}'
         )
 
-    def clean(self):
+    def save(self, *args, **kwargs):
         """
-        During clean create an identifier from the combination of
+        During save create an identifier from the combination of
         slugify(self.statement)+self.debate.identifier+self.author.identifier
         """
         if not self.id:
@@ -205,3 +197,4 @@ class Statement(models.Model):
             # overwriting the identifier and keep it the same
             slug = f"{slugify(self.statement)}+{self.debate.identifier}+{self.author.identifier}"
             self.identifier = xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
+        super().save(*args, **kwargs)
