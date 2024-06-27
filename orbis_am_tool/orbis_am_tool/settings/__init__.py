@@ -13,14 +13,14 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-tn@gn0tib&t%9jk$&t+4xveto=*n*^*pfru3wt!5e256g6wmo("
+SECRET_KEY = "change-me"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -149,3 +149,10 @@ SPECTACULAR_SETTINGS = {
 
 # XXHASH
 XXHASH_SEED = 42
+
+# Hugging Face Models
+# You need to set this up to the model you will be using
+# If you are pulling private models, you need to run the Django application
+# with the `HF_TOKEN` variable set
+ARGUMENTS_COMPONENTS_MODEL = "orbis-marianne/deberta-v3-seq-tag"
+ARGUMENTS_RELATIONS_MODEL = "orbis-marianne/deberta-v3-rel-class"

@@ -161,3 +161,10 @@ cython_debug/
 
 # Project
 test.ipynb
+orbis_am_tool/*_fixtures.json
+# Only leave the base settings file, the rest are environment specific
+orbis_am_tool/orbis_am_tool/settings/*.py
+!orbis_am_tool/orbis_am_tool/settings/__init__.py
+
+# Hugging Face
+.hfcache/
