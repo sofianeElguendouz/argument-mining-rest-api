@@ -61,6 +61,19 @@ class ArgumentativeComponent(AbstractIdentifierModel):
     def __str__(self):
         return f"{self.get_label_display()} component in {self.statement}"
 
+    @property
+    def statement_fragment(self) -> str:
+        """
+        Returns the fragment text of the statement that has been marked as an
+        argumentative component
+
+        Returns
+        -------
+        str
+            The statement's fragment of annotated text.
+        """
+        return self.statement.statement[self.start : self.end]
+
     def clean(self):
         """
         Check that the ``start`` and the ``end`` have some length, are ordered,

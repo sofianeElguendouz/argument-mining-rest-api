@@ -132,7 +132,7 @@ class ArgumentMiningPipelineView(views.APIView):
                         defaults=dict(
                             label=relation["label"],
                             score=relation["score"],
-                        )
+                        ),
                     )
 
         statements = StatementSerializer(statements, many=True, context={"request": request})

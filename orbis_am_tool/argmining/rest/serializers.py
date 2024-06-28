@@ -51,9 +51,11 @@ class ArgumentativeComponentSerializer(serializers.HyperlinkedModelSerializer):
     """
 
     url = serializers.HyperlinkedIdentityField(
-        view_name="component-detail", read_only=True, lookup_field="identifier"
+        view_name="component-detail",
+        read_only=True,
+        lookup_field="identifier",
     )
-    label = serializers.CharField(source="get_label_display")
+    label = serializers.CharField(read_only=True, source="get_label_display")
     statement = serializers.HyperlinkedRelatedField(
         many=False,
         view_name="statement-detail",
@@ -72,6 +74,7 @@ class ArgumentativeComponentSerializer(serializers.HyperlinkedModelSerializer):
             "start",
             "end",
             "score",
+            "statement_fragment",
             "relations_as_source",
             "relations_as_target",
         ]
