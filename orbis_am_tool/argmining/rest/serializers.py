@@ -9,29 +9,36 @@ class ArgumentativeRelationSerializer(serializers.ModelSerializer):
 
     This is a ``ModelSerializer``, not a ``HyperlinkedModelSerializer``, as the
     only way to access the relations is through the argumentative component API,
-    via the ``ArgumentativeComponentSerializer`` defined below.
+    via the ``ArgumentativeComponentSerializer``.
     """
 
-    label = serializers.CharField(source="get_label_display")
+    label = serializers.CharField(
+        read_only=True,
+        source="get_label_display",
+        help_text="The label (attack/support) of this relation.",
+    )
     source_component = serializers.HyperlinkedRelatedField(
         view_name="component-detail",
-        read_only=True,
         lookup_field="identifier",
+        read_only=True,
         source="source",
+        help_text="The URL that identifies the source component of this relation.",
     )
     target_component = serializers.HyperlinkedRelatedField(
         view_name="component-detail",
-        read_only=True,
         lookup_field="identifier",
+        read_only=True,
         source="target",
+        help_text="The URL that identifies the target component of this relation.",
     )
 
     class Meta:
         model = ArgumentativeRelation
         fields = [
-            "label",
             "source_component",
             "target_component",
+            "label",
+            "score",
         ]
 
 
@@ -46,24 +53,37 @@ class ArgumentativeComponentSerializer(serializers.HyperlinkedModelSerializer):
     Unlike relations, which only make sense within the context of a pair of
     argumentative components, the components make sense to have their own REST
     API to be accessed directly, although it's debatable whether they should be
-    accessed through their own REST API (i.e., the ``/api/argminin``) or if they
+    accessed through their own REST API (i.e., the ``/api/argmining``) or if they
     can be a part of the ``/api/debate`` REST API.
     """
 
     url = serializers.HyperlinkedIdentityField(
         view_name="component-detail",
-        read_only=True,
         lookup_field="identifier",
+        read_only=True,
+        help_text="The URL that identifies this component resource.",
     )
-    label = serializers.CharField(read_only=True, source="get_label_display")
     statement = serializers.HyperlinkedRelatedField(
-        many=False,
         view_name="statement-detail",
-        read_only=True,
         lookup_field="identifier",
+        read_only=True,
+        help_text="The URL that identifies this component's statement resource.",
     )
-    relations_as_source = ArgumentativeRelationSerializer(many=True, read_only=True)
-    relations_as_target = ArgumentativeRelationSerializer(many=True, read_only=True)
+    label = serializers.CharField(
+        read_only=True,
+        source="get_label_display",
+        help_text="The label (claim or premise) of this component.",
+    )
+    relations_as_source = ArgumentativeRelationSerializer(
+        many=True,
+        read_only=True,
+        help_text="The list of relations this component is part of as a source of the relation.",
+    )
+    relations_as_target = ArgumentativeRelationSerializer(
+        many=True,
+        read_only=True,
+        help_text="The list of relations this component is part of as a target of the relation.",
+    )
 
     class Meta:
         model = ArgumentativeComponent
@@ -138,4 +158,127 @@ class ArgumentationMiningPipelineSerializer(serializers.Serializer):
         write_only=True,
         required=True,
         help_text="The list of statements done by the different authors.",
+    )
+
+
+class ArgumentativeGraphNodeSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    Serializer for a node of an Argumentative Graph
+
+    A node is an argumentative component of a statement, but it won't show the
+    relations of it as they are covered by the edges in the Graph.
+
+    It also provides direct access to other parts of the statement like the full
+    text and the author.
+    """
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="component-detail",
+        lookup_field="identifier",
+        read_only=True,
+        help_text="The URL that identifies the component associated to this node.",
+    )
+    statement = serializers.HyperlinkedRelatedField(
+        view_name="statement-detail",
+        lookup_field="identifier",
+        read_only=True,
+        help_text="The URL to the statement's resource of this component.",
+    )
+    label = serializers.CharField(read_only=True, source="get_label_display")
+    statement_text = serializers.CharField(
+        read_only=True,
+        source="statement.statement",
+        help_text="The whole text of the statement.",
+    )
+    statement_author = serializers.HyperlinkedRelatedField(
+        view_name="author-detail",
+        lookup_field="identifier",
+        read_only=True,
+        source="statement.author",
+        help_text="The URL to the author's resource of this component's statement.",
+    )
+
+    class Meta:
+        model = ArgumentativeComponent
+        fields = [
+            "url",
+            "statement",
+            "label",
+            "start",
+            "end",
+            "score",
+            "statement_fragment",
+            "statement_text",
+            "statement_author",
+        ]
+
+
+class ArgumentativeGraphEdgeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for an Edge of an Argumentative Graph
+
+    The edge is the relation between two components (nodes). It's another view
+    for the Argumentative Relation that has direct access to each of the
+    components parts to make it easier to retrieve.
+    """
+
+    label = serializers.CharField(source="get_label_display")
+    source_url = serializers.HyperlinkedRelatedField(
+        view_name="component-detail",
+        lookup_field="identifier",
+        read_only=True,
+        source="source",
+        help_text="The URL that identifier the component that is the source of the relation.",
+    )
+    source_text = serializers.CharField(
+        read_only=True,
+        source="source.statement_fragment",
+        help_text="The text fragment of the source component.",
+    )
+    target_url = serializers.HyperlinkedRelatedField(
+        view_name="component-detail",
+        lookup_field="identifier",
+        read_only=True,
+        source="target",
+        help_text="The URL that identifier the component that is the target of the relation.",
+    )
+    target_text = serializers.CharField(
+        read_only=True,
+        source="target.statement_fragment",
+        help_text="The text fragment of the target component.",
+    )
+
+    class Meta:
+        model = ArgumentativeRelation
+        fields = [
+            "source_url",
+            "target_url",
+            "label",
+            "score",
+            "source_text",
+            "target_text",
+        ]
+
+
+class ArgumentativeGraphSerializer(serializers.Serializer):
+    """
+    A serializer for the Argumentative Graph of a Debate
+
+    This serializer builds the full argumentative graph given the relations and
+    components of a given debate.
+    """
+
+    debate = serializers.HyperlinkedRelatedField(
+        view_name="debate-detail",
+        lookup_field="identifier",
+        read_only=True,
+        help_text="The URL that identfies the debate's resource of this graph.",
+    )
+    nodes = ArgumentativeGraphNodeSerializer(
+        many=True,
+        read_only=True,
+    )
+    edges = ArgumentativeGraphEdgeSerializer(
+        many=True,
+        read_only=True,
     )

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db.models import Q
-from drf_spectacular.openapi import OpenApiResponse
+from django.shortcuts import get_object_or_404
+from drf_spectacular.openapi import OpenApiParameter, OpenApiResponse, OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from itertools import permutations
 from rest_framework import generics, views, status
@@ -14,6 +15,16 @@ from debate.rest.serializers import StatementSerializer
 from utils.pipelines import arguments_components_model, arguments_relations_model
 
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="identifier",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="The unique identifier of the component to retrieve.",
+        )
+    ]
+)
 class ArgumentativeComponentView(generics.RetrieveAPIView):
     """
     Argumentative Component View.
@@ -138,3 +149,46 @@ class ArgumentMiningPipelineView(views.APIView):
         statements = StatementSerializer(statements, many=True, context={"request": request})
 
         return Response(statements.data, status=status.HTTP_200_OK)
+
+
+class ArgumentativeGraphView(views.APIView):
+    """
+    Argumentative Graph View
+
+    Retrieves the whole argumentative graph as a list of nodes and edges of a
+    given debate in the database. It provides a different, more complete and
+    direct to access view of the debate.
+    """
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="identifier",
+                type=OpenApiTypes.UUID,
+                location=OpenApiParameter.PATH,
+                description="The unique identifier of the debate to get the argumentative graph.",
+            )
+        ],
+        request=serializers.ArgumentationMiningPipelineSerializer,
+        responses={
+            status.HTTP_200_OK: serializers.ArgumentativeGraphSerializer,
+            status.HTTP_404_NOT_FOUND: OpenApiResponse(
+                description="The debate doesn't exists."
+            ),
+        },
+    )
+    def get(self, request, identifier, format=None):
+        debate = get_object_or_404(Debate, identifier=identifier)
+        nodes = ArgumentativeComponent.objects.filter(statement__debate=debate)
+        edges = ArgumentativeRelation.objects.filter(
+            Q(source__statement__debate=debate) | Q(source__statement__debate=debate)
+        )
+        graph = serializers.ArgumentativeGraphSerializer(
+            instance={
+                "debate": debate,
+                "nodes": nodes,
+                "edges": edges,
+            },
+            context={"request": request},
+        )
+        return Response(graph.data, status=status.HTTP_200_OK)
