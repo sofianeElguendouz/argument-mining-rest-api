@@ -11,7 +11,18 @@ authors = [
 description = "Argumentation Mining Tool for ORBIS Project"
 readme = "README.md"
 requires-python = ">=3.11.1"
-dynamic = ["dependencies", "optional-dependencies"]
+dependencies = [
+    "django==5.0.6",
+    "django-filter==24.2",
+    "djangorestframework==3.15.1",
+    "drf-spectacular==0.27.2",
+    "gunicorn==22.0.0",
+    "markdown==3.6",
+    "psycopg2==2.9.9",
+    "torch==2.3.1+cpu",
+    "transformers==4.41.1",
+    "xxhash==3.4.1"
+]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)"
@@ -20,6 +31,16 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/orbis-marianne/orbis-argument-mining-tool"
 Issues = "https://github.com/orbis-marianne/argumentation-mining-transformers/issues"
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "django-extensions",
+    "flake8",
+    "ipdb",
+    "ipython",
+    "notebook"
+]
 
 [tool.black]
 extend-exclude = '\w*.ipynb'
