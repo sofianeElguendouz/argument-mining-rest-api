@@ -16,6 +16,7 @@ class SourceSerializer(serializers.HyperlinkedModelSerializer):
         view_name="source-detail",
         read_only=True,
         lookup_field="identifier",
+        help_text="The URL that identifies this source resource.",
     )
 
     class Meta:
@@ -35,17 +36,22 @@ class DebateSerializer(serializers.HyperlinkedModelSerializer):
         view_name="debate-detail",
         read_only=True,
         lookup_field="identifier",
+        help_text="The URL that identifies this debate resource.",
     )
     source = serializers.HyperlinkedRelatedField(
         view_name="source-detail",
         read_only=True,
         lookup_field="identifier",
+        help_text="The URL that identifies the source resource of this debate.",
     )
     statements = serializers.HyperlinkedRelatedField(
         many=True,
         view_name="statement-detail",
         read_only=True,
         lookup_field="identifier",
+        help_text=(
+            "The list of URLs that identifies the statements resources that are part of this debate"
+        ),
     )
 
     class Meta:
@@ -67,13 +73,17 @@ class AuthorSerializer(serializers.HyperlinkedModelSerializer):
     """
 
     url = serializers.HyperlinkedIdentityField(
-        view_name="author-detail", read_only=True, lookup_field="identifier"
+        view_name="author-detail",
+        read_only=True,
+        lookup_field="identifier",
+        help_text="The URL that identifies this author resource",
     )
     statements = serializers.HyperlinkedRelatedField(
         many=True,
         view_name="statement-detail",
         read_only=True,
         lookup_field="identifier",
+        help_text="The list of URLs that identifies the statements this resource is an author of.",
     )
 
     class Meta:
@@ -108,30 +118,51 @@ class StatementSerializer(serializers.HyperlinkedModelSerializer):
         view_name="statement-detail",
         read_only=True,
         lookup_field="identifier",
+        help_text="The URL that identifies this statement resource.",
     )
     debate = serializers.HyperlinkedRelatedField(
         view_name="debate-detail",
         read_only=True,
         lookup_field="identifier",
+        help_text="The URL that identifies the debate resource of this statement.",
     )
     author = serializers.HyperlinkedRelatedField(
         view_name="author-detail",
         read_only=True,
         lookup_field="identifier",
+        help_text="The URL that identifies the author resource of this statement.",
     )
-    statement_type = serializers.CharField(source="get_statement_type_display")
+    statement_type = serializers.CharField(
+        read_only=True,
+        source="get_statement_type_display",
+        help_text=(
+            "The type of this statement (if it has any): "
+            "position, attacking argument or supporting argument"
+        ),
+    )
     argumentative_components = ArgumentativeComponentSerializer(
         many=True,
         read_only=True,
+        help_text="The list of argumentative components that are part of this statement.",
     )
     related_to = serializers.HyperlinkedRelatedField(
-        view_name="statement-detail", read_only=True, lookup_field="identifier"
+        view_name="statement-detail",
+        lookup_field="identifier",
+        read_only=True,
+        help_text=(
+            "The URL that identifies the statement resource with "
+            "which this statement is related to."
+        ),
     )
     related_statements = serializers.HyperlinkedRelatedField(
         many=True,
         view_name="statement-detail",
         read_only=True,
         lookup_field="identifier",
+        help_text=(
+            "The list of URLs that identifies the statements resources with "
+            "which are related to this statement."
+        ),
     )
 
     class Meta:

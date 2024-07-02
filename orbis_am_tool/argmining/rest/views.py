@@ -23,7 +23,11 @@ from utils.pipelines import arguments_components_model, arguments_relations_mode
             location=OpenApiParameter.PATH,
             description="The unique identifier of the component to retrieve.",
         )
-    ]
+    ],
+    responses={
+        status.HTTP_200_OK: serializers.ArgumentativeComponentSerializer,
+        status.HTTP_404_NOT_FOUND: OpenApiResponse(description="The component was not found"),
+    },
 )
 class ArgumentativeComponentView(generics.RetrieveAPIView):
     """
@@ -40,6 +44,15 @@ class ArgumentativeComponentView(generics.RetrieveAPIView):
     lookup_field = "identifier"
 
 
+@extend_schema(
+    request=serializers.ArgumentationMiningPipelineSerializer,
+    responses={
+        status.HTTP_200_OK: StatementSerializer(many=True),
+        status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+            description="There was a problem while parsing the data"
+        ),
+    },
+)
 class ArgumentMiningPipelineView(views.APIView):
     """
     Argument Mining Pipeline View
@@ -51,15 +64,6 @@ class ArgumentMiningPipelineView(views.APIView):
     created with their corresponding analysis.
     """
 
-    @extend_schema(
-        request=serializers.ArgumentationMiningPipelineSerializer,
-        responses={
-            status.HTTP_200_OK: StatementSerializer(many=True),
-            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
-                description="There was a problem while parsing the data"
-            ),
-        },
-    )
     def post(self, request, format=None):
         pipeline_data = serializers.ArgumentationMiningPipelineSerializer(data=request.data)
 
@@ -151,32 +155,30 @@ class ArgumentMiningPipelineView(views.APIView):
         return Response(statements.data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="identifier",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="The unique identifier of the debate to get the argumentative graph.",
+        )
+    ],
+    request=serializers.ArgumentationMiningPipelineSerializer,
+    responses={
+        status.HTTP_200_OK: serializers.ArgumentativeGraphSerializer,
+        status.HTTP_404_NOT_FOUND: OpenApiResponse(description="The debate was not found."),
+    },
+)
 class ArgumentativeGraphView(views.APIView):
     """
     Argumentative Graph View
 
     Retrieves the whole argumentative graph as a list of nodes and edges of a
     given debate in the database. It provides a different, more complete and
-    direct to access view of the debate.
+    direct to access, view of the debate.
     """
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="identifier",
-                type=OpenApiTypes.UUID,
-                location=OpenApiParameter.PATH,
-                description="The unique identifier of the debate to get the argumentative graph.",
-            )
-        ],
-        request=serializers.ArgumentationMiningPipelineSerializer,
-        responses={
-            status.HTTP_200_OK: serializers.ArgumentativeGraphSerializer,
-            status.HTTP_404_NOT_FOUND: OpenApiResponse(
-                description="The debate doesn't exists."
-            ),
-        },
-    )
     def get(self, request, identifier, format=None):
         debate = get_object_or_404(Debate, identifier=identifier)
         nodes = ArgumentativeComponent.objects.filter(statement__debate=debate)
