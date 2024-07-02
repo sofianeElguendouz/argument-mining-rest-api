@@ -1,0 +1,38 @@
+services:
+  pg:
+    image: postgres:15-alpine
+    container_name: orbis_am_tool_postgres
+    env_file:
+      - ./.env
+    expose:
+      - "5432"
+    volumes:
+      - orbis_am_tool_db:/var/lib/postgresql/data
+  orbis_am_tool:
+    build: .
+    container_name: orbis_am_tool
+    env_file:
+      - ./.env
+    expose:
+      - "8000"
+    restart: always
+    depends_on:
+      - pg
+    volumes:
+      - ./orbis_am_tool:/orbis_am_tool
+      - ./nginx/static:/static
+  app:
+    image: nginx:latest
+    container_name: mlrec_app
+    ports:
+      - ${ORBIS_AM_TOOL_PORT:-8000}:80
+    volumes:
+      - ./nginx/static:/static:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./logs:/var/log/nginx
+    depends_on:
+      - orbis_am_tool
+
+
+volumes:
+ orbis_am_tool_db:
