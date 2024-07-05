@@ -34,21 +34,19 @@ Issues = "https://github.com/orbis-marianne/argumentation-mining-transformers/is
 
 [project.optional-dependencies]
 dev = [
-    "black",
+    "black[jupyter]",
     "django-extensions",
     "flake8",
     "ipdb",
     "ipython",
-    "notebook"
+    "ipywidgets",
+    "nltk",
+    "notebook",
+    "pandas"
 ]
 
 [tool.black]
-extend-exclude = '\w*.ipynb'
 line-length = 100
 
 [tool.setuptools.packages.find]
 exclude = ["*venv*", "*env*", ".venv*"]
-
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
-optional-dependencies.dev = { file = ["dev-requirements.txt"] }
