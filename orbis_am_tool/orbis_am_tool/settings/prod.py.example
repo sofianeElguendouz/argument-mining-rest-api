@@ -1,0 +1,34 @@
+import os
+from orbis_am_tool.settings import *  # noqa
+
+# No debug mode
+DEBUG = False
+
+# This must be unique and well kept
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+
+# Set all the hosts that will be allowed to access the application
+ALLOWED_HOSTS = [
+    "localhost",
+    "orbis.i3s.unice.fr",
+]
+
+# Required for the correct setup of the docker environment
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+]
+
+# The database is handled by the `pg` service in the docker compose file
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": "pg",
+        "PORT": "5432",
+    }
+}
+
+# Override the static root, to match the one that is set in the docker compose file
+STATIC_ROOT = os.getenv("DJANGO_STATIC_ROOT")
