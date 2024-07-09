@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orbis-am-tool"
+version = "0.0.1"
+authors = [
+    { name="Cristian Cardellino", email="cristian.a.cardellino@inria.fr" },
+]
+description = "Argumentation Mining Tool for ORBIS Project"
+readme = "README.md"
+requires-python = ">=3.11.1"
+dependencies = [
+    "django==5.0.6",
+    "django-filter==24.2",
+    "djangorestframework==3.15.1",
+    "drf-spectacular==0.27.2",
+    "gunicorn==22.0.0",
+    "markdown==3.6",
+    "psycopg2==2.9.9",
+    "torch==2.3.1+cpu",
+    "transformers==4.41.1",
+    "xxhash==3.4.1"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)"
+]
+
+[project.urls]
+Homepage = "https://github.com/orbis-marianne/orbis-argument-mining-tool"
+Issues = "https://github.com/orbis-marianne/argumentation-mining-transformers/issues"
+
+[project.optional-dependencies]
+dev = [
+    "black[jupyter]",
+    "django-extensions",
+    "flake8",
+    "ipdb",
+    "ipython",
+    "ipywidgets",
+    "nltk",
+    "notebook",
+    "pandas"
+]
+
+[tool.black]
+line-length = 100
+
+[tool.setuptools.packages.find]
+exclude = ["*venv*", "*env*", ".venv*"]
