@@ -23,7 +23,7 @@ services:
       - ./nginx/static:/static
   app:
     image: nginx:latest
-    container_name: mlrec_app
+    container_name: orbis_am_tool_app
     ports:
       - ${ORBIS_AM_TOOL_PORT:-8000}:80
     volumes:
