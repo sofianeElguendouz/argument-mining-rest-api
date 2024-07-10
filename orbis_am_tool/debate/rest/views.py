@@ -10,7 +10,7 @@ from debate.rest import serializers
     parameters=[
         OpenApiParameter(
             name="identifier",
-            type=OpenApiTypes.UUID,
+            type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
             description="The unique identifier of the author to retrieve.",
         )
@@ -36,7 +36,7 @@ class AuthorView(generics.RetrieveAPIView):
     parameters=[
         OpenApiParameter(
             name="identifier",
-            type=OpenApiTypes.UUID,
+            type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
             description="The unique identifier of the debate to retrieve.",
         )
@@ -62,7 +62,7 @@ class DebateView(generics.RetrieveAPIView):
     parameters=[
         OpenApiParameter(
             name="identifier",
-            type=OpenApiTypes.UUID,
+            type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
             description="The unique identifier of the source to retrieve.",
         )
@@ -88,7 +88,7 @@ class SourceView(generics.RetrieveAPIView):
     parameters=[
         OpenApiParameter(
             name="identifier",
-            type=OpenApiTypes.UUID,
+            type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
             description="The unique identifier of the statement to retrieve.",
         )

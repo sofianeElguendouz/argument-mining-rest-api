@@ -19,7 +19,7 @@ from utils.pipelines import arguments_components_model, arguments_relations_mode
     parameters=[
         OpenApiParameter(
             name="identifier",
-            type=OpenApiTypes.UUID,
+            type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
             description="The unique identifier of the component to retrieve.",
         )
@@ -159,7 +159,7 @@ class ArgumentMiningPipelineView(views.APIView):
     parameters=[
         OpenApiParameter(
             name="identifier",
-            type=OpenApiTypes.UUID,
+            type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
             description="The unique identifier of the debate to get the argumentative graph.",
         )
