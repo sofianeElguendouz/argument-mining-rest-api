@@ -160,10 +160,13 @@ XXHASH_SEED = 42
 # with the `HF_TOKEN` variable set
 ARGUMENTS_COMPONENTS_MODEL = "orbis-marianne/deberta-v3-seq-tag"
 ARGUMENTS_COMPONENT_MODEL_STRATEGY = "simple"  # This is the only that works for deberta-v3
+ARGUMENTS_COMPONENT_MODEL_MAX_LENGTH = 128
+ARGUMENTS_COMPONENT_MODEL_STRIDE = 8
+
 ARGUMENTS_RELATIONS_MODEL = "orbis-marianne/deberta-v3-rel-class"
-ARGUMENTS_MODEL_MAX_LENGTH = 256  # 256 should be enough to match the large majority of texts
+ARGUMENTS_RELATION_MODEL_MAX_LENGTH = 256
 
 # Minimum scores to consider creating an argumentative component/relation when
 # running the model, to avoid models overcrowding the DB
-MINIMUM_COMPONENT_SCORE = 0.90
-MINIMUM_RELATION_SCORE = 0.90
+MINIMUM_COMPONENT_SCORE = 0.75
+MINIMUM_RELATION_SCORE = 0.75

@@ -11,10 +11,6 @@ services:
   orbis_am_tool:
     build: .
     container_name: orbis_am_tool
-    deploy:
-      resources:
-        limits:
-          memory: 20G
     env_file:
       - ./.env
     expose:

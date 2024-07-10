@@ -11,9 +11,10 @@ arguments_components_model = pipeline(
     model=settings.ARGUMENTS_COMPONENTS_MODEL,
     tokenizer=AutoTokenizer.from_pretrained(
         settings.ARGUMENTS_COMPONENTS_MODEL,
-        model_max_length=settings.ARGUMENTS_MODEL_MAX_LENGTH
+        model_max_length=settings.ARGUMENTS_COMPONENT_MODEL_MAX_LENGTH,
     ),
     aggregation_strategy=settings.ARGUMENTS_COMPONENT_MODEL_STRATEGY,
+    stride=settings.ARGUMENTS_COMPONENT_MODEL_STRIDE,
 )
 
 arguments_relations_model = pipeline(
@@ -21,6 +22,6 @@ arguments_relations_model = pipeline(
     model=settings.ARGUMENTS_RELATIONS_MODEL,
     tokenizer=AutoTokenizer.from_pretrained(
         settings.ARGUMENTS_RELATIONS_MODEL,
-        model_max_length=settings.ARGUMENTS_MODEL_MAX_LENGTH
+        model_max_length=settings.ARGUMENTS_RELATION_MODEL_MAX_LENGTH,
     ),
 )
