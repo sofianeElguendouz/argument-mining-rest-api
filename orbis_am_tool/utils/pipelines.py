@@ -3,16 +3,24 @@ Hugging Face Pipelines to load the models.
 """
 
 from django.conf import settings
-from transformers import pipeline
+from transformers import AutoTokenizer, pipeline
 
 
 arguments_components_model = pipeline(
     task="token-classification",
     model=settings.ARGUMENTS_COMPONENTS_MODEL,
-    aggregation_strategy="first",
+    tokenizer=AutoTokenizer.from_pretrained(
+        settings.ARGUMENTS_COMPONENTS_MODEL,
+        model_max_length=settings.ARGUMENTS_MODEL_MAX_LENGTH
+    ),
+    aggregation_strategy=settings.ARGUMENTS_COMPONENT_MODEL_STRATEGY,
 )
 
 arguments_relations_model = pipeline(
     task="text-classification",
     model=settings.ARGUMENTS_RELATIONS_MODEL,
+    tokenizer=AutoTokenizer.from_pretrained(
+        settings.ARGUMENTS_RELATIONS_MODEL,
+        model_max_length=settings.ARGUMENTS_MODEL_MAX_LENGTH
+    ),
 )
