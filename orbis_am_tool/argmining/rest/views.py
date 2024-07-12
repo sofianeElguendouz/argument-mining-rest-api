@@ -183,11 +183,12 @@ class ArgumentativeGraphView(views.APIView):
         debate = get_object_or_404(Debate, identifier=identifier)
         nodes = ArgumentativeComponent.objects.filter(statement__debate=debate)
         edges = ArgumentativeRelation.objects.filter(
-            Q(source__statement__debate=debate) | Q(source__statement__debate=debate)
+            Q(source__statement__debate=debate) | Q(target__statement__debate=debate)
         )
         graph = serializers.ArgumentativeGraphSerializer(
             instance={
                 "debate": debate,
+                "statements": debate.statements.all(),
                 "nodes": nodes,
                 "edges": edges,
             },

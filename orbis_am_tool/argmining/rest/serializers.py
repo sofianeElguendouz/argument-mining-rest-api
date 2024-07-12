@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from argmining.models import ArgumentativeComponent, ArgumentativeRelation
+from debate.models import Statement
 
 
 class ArgumentativeRelationSerializer(serializers.ModelSerializer):
@@ -167,9 +168,6 @@ class ArgumentativeGraphNodeSerializer(serializers.HyperlinkedModelSerializer):
 
     A node is an argumentative component of a statement, but it won't show the
     relations of it as they are covered by the edges in the Graph.
-
-    It also provides direct access to other parts of the statement like the full
-    text and the author.
     """
 
     url = serializers.HyperlinkedIdentityField(
@@ -185,18 +183,6 @@ class ArgumentativeGraphNodeSerializer(serializers.HyperlinkedModelSerializer):
         help_text="The URL to the statement's resource of this component.",
     )
     label = serializers.CharField(read_only=True, source="get_label_display")
-    statement_text = serializers.CharField(
-        read_only=True,
-        source="statement.statement",
-        help_text="The whole text of the statement.",
-    )
-    statement_author = serializers.HyperlinkedRelatedField(
-        view_name="author-detail",
-        lookup_field="identifier",
-        read_only=True,
-        source="statement.author",
-        help_text="The URL to the author's resource of this component's statement.",
-    )
 
     class Meta:
         model = ArgumentativeComponent
@@ -208,8 +194,6 @@ class ArgumentativeGraphNodeSerializer(serializers.HyperlinkedModelSerializer):
             "end",
             "score",
             "statement_fragment",
-            "statement_text",
-            "statement_author",
         ]
 
 
@@ -260,6 +244,46 @@ class ArgumentativeGraphEdgeSerializer(serializers.ModelSerializer):
         ]
 
 
+class ArgumentativeGraphStatementSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    Serializer for a statement of the debate of the Argumentative Graph.
+
+    This is useful for direct access to the statement full information, without
+    the extras like the argumentative components and relations since those are
+    already the edges and nodes of the Argumentative Graph.
+    """
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="statement-detail",
+        lookup_field="identifier",
+        read_only=True,
+        help_text="The URL that identifies the statement.",
+    )
+    author = serializers.HyperlinkedRelatedField(
+        view_name="author-detail",
+        read_only=True,
+        lookup_field="identifier",
+        help_text="The URL that identifies the author resource of this statement.",
+    )
+    statement_type = serializers.CharField(
+        read_only=True,
+        source="get_statement_type_display",
+        help_text=(
+            "The type of this statement (if it has any): "
+            "position, attacking argument or supporting argument"
+        ),
+    )
+
+    class Meta:
+        model = Statement
+        fields = [
+            "url",
+            "author",
+            "statement_type",
+            "statement",
+        ]
+
+
 class ArgumentativeGraphSerializer(serializers.Serializer):
     """
     A serializer for the Argumentative Graph of a Debate
@@ -273,6 +297,10 @@ class ArgumentativeGraphSerializer(serializers.Serializer):
         lookup_field="identifier",
         read_only=True,
         help_text="The URL that identfies the debate's resource of this graph.",
+    )
+    statements = ArgumentativeGraphStatementSerializer(
+        many=True,
+        read_only=True,
     )
     nodes = ArgumentativeGraphNodeSerializer(
         many=True,
