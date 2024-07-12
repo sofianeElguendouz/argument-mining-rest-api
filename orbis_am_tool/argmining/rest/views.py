@@ -45,6 +45,16 @@ class ArgumentativeComponentView(generics.RetrieveAPIView):
 
 
 @extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="override",
+            type=OpenApiTypes.BOOL,
+            location=OpenApiParameter.QUERY,
+            description=(
+                "If `true` then runs the model again on statements where it has been already run."
+            ),
+        )
+    ],
     request=serializers.ArgumentationMiningPipelineSerializer,
     responses={
         status.HTTP_200_OK: StatementSerializer(many=True),
@@ -69,6 +79,8 @@ class ArgumentMiningPipelineView(views.APIView):
 
         if not pipeline_data.is_valid():
             return Response(pipeline_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        override = request.query_params.get("override", "").lower() in {"true", "1"}
 
         # We try to get the Source (if it was given), if it doesn't exist we create it
         if "source" not in pipeline_data.validated_data:
@@ -95,10 +107,14 @@ class ArgumentMiningPipelineView(views.APIView):
 
             # Then we instantiate an statement, and check if it exists in the DB
             # (by identifier), if that's the case we retrieve it.
-            statement, _ = Statement.objects.get_or_create(
+            statement, created = Statement.objects.get_or_create(
                 statement=statement_data["statement"], debate=debate, author=author
             )
             statements.append(statement)
+
+            if not created and not override:
+                # Don't run the models on existing statements unless asked to do so
+                continue
 
             # We run the component detection model
             components = []
