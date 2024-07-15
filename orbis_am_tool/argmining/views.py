@@ -13,7 +13,7 @@ from argmining.models import ArgumentativeComponent, ArgumentativeRelation
 
 
 class AnnFilesTar(View):
-    http_method_names = ['get']
+    http_method_names = ["get"]
 
     def get_files(self):
         debate = get_object_or_404(Debate, identifier=self.kwargs["identifier"])
@@ -36,14 +36,16 @@ class AnnFilesTar(View):
             )
 
         annotation_config.extend(["[events]", "[attributes]"])
-        annotation_config = ContentFile("\n".join(annotation_config).encode("utf-8"), name="annotation.conf")
+        annotation_config = ContentFile(
+            "\n".join(annotation_config).encode("utf-8"), name="annotation.conf"
+        )
 
         tools_config = [
             "[options]",
             "Validation\tvalidate:all",
             "Tokens\ttokenizer:whitespace",
             "Sentences\tsplitter:newline",
-            "Annotation-log\tlogfile:<NONE>"
+            "Annotation-log\tlogfile:<NONE>",
         ]
         tools_config = ContentFile("\n".join(tools_config).encode("utf-8"), name="tools.conf")
 
@@ -55,25 +57,29 @@ class AnnFilesTar(View):
             full_text += f"{statement.statement}\n"
 
             for component in statement.argumentative_components.order_by("pk"):
-                components.append({
-                    "id": f"T{component.identifier}",
-                    "label": component.label,
-                    "start": component.start + offset,
-                    "end": component.end + offset,
-                    "fragment": component.statement_fragment,
-                })
+                components.append(
+                    {
+                        "id": f"T{component.identifier}",
+                        "label": component.label,
+                        "start": component.start + offset,
+                        "end": component.end + offset,
+                        "fragment": component.statement_fragment,
+                    }
+                )
 
         relevant_relations = ArgumentativeRelation.objects.filter(
             Q(source__statement__debate=debate) | Q(target__statement__debate=debate)
         )
         relations = []
         for ridx, relation in enumerate(relevant_relations, start=1):
-            relations.append({
-                "id": f"R{ridx}",
-                "label": relation.label,
-                "source": f"T{relation.source.identifier}",
-                "target": f"T{relation.target.identifier}",
-            })
+            relations.append(
+                {
+                    "id": f"R{ridx}",
+                    "label": relation.label,
+                    "source": f"T{relation.source.identifier}",
+                    "target": f"T{relation.target.identifier}",
+                }
+            )
 
         ann_file = [
             f"{comp['id']}\t{comp['label']} {comp['start']} {comp['end']}\t{comp['fragment']}"
@@ -86,17 +92,12 @@ class AnnFilesTar(View):
         ann_file = ContentFile("\n".join(ann_file).encode("utf-8"), name=f"{debate.identifier}.ann")
         txt_file = ContentFile(full_text.encode("utf-8"), name=f"{debate.identifier}.txt")
 
-        return [
-            ann_file,
-            txt_file,
-            annotation_config,
-            tools_config
-        ]
+        return [ann_file, txt_file, annotation_config, tools_config]
 
     def get(self, request, *args, **kwargs):
         tarfile_name = f"{self.kwargs['identifier']}.tgz"
         temp_file = ContentFile(b"", name=tarfile_name)
-        with tarfile.TarFile(fileobj=temp_file, mode='w', debug=3) as tar_file:
+        with tarfile.TarFile(fileobj=temp_file, mode="w", debug=3) as tar_file:
             files = self.get_files()
             for file_ in files:
                 file_name = file_.name
@@ -122,7 +123,7 @@ class AnnFilesTar(View):
         file_size = temp_file.tell()
         temp_file.seek(0)
 
-        response = HttpResponse(temp_file, content_type='application/x-tar')
-        response['Content-Disposition'] = f'attachment; filename={tarfile_name}'
-        response['Content-Length'] = file_size
+        response = HttpResponse(temp_file, content_type="application/x-tar")
+        response["Content-Disposition"] = f"attachment; filename={tarfile_name}"
+        response["Content-Length"] = file_size
         return response
