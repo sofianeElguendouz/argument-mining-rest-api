@@ -33,7 +33,11 @@ class AbstractIdentifierModel(models.Model):
 
         We need to check if there is an object with the identifier and raise
         """
-        if self.__class__.objects.filter(identifier=self.build_identifier()).exists():
+        if (
+            self.__class__.objects.exclude(pk=self.pk)
+            .filter(identifier=self.build_identifier())
+            .exists()
+        ):
             raise ValidationError("The identifier isn't unique")
 
     def save(self, *args, **kwargs):
