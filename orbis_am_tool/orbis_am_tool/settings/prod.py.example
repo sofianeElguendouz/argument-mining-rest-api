@@ -16,6 +16,7 @@ ALLOWED_HOSTS = [
 # Required for the correct setup of the docker environment
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
+    "https://orbis.i3s.unice.fr",
 ]
 
 # The database is handled by the `pg` service in the docker compose file
