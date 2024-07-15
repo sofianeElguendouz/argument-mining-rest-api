@@ -30,7 +30,7 @@ services:
     volumes:
       - ./nginx/static:${DJANGO_STATIC_ROOT}:ro
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ${NGINX_CERT_FILE}:/etc/ssl/certs/orbis.cert;
+      - ${NGINX_CERT_FILE}:/etc/ssl/certs/orbis.crt;
       - ${NGINX_CERT_KEY}:/etc/ssl/private/orbis.key;
       - ./logs:/var/log/nginx
     depends_on:
