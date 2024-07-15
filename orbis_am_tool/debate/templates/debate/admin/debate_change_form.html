@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+
+{% block object-tools-items %}
+  <li>
+    <a href="{% url 'argmining:debate-to-brat' original.identifier %}">
+    Get Debate Brat Files
+    </a>
+  </li>
+  {{ block.super }}
+{% endblock %}
