@@ -6,7 +6,7 @@ from debate.models import Author, Debate, Source, Statement
 
 class SourceSerializer(serializers.ModelSerializer):
     """
-    Serializer for a Debate's ``source`` model.
+    Serializer for a Debate's ``Source`` model.
     """
 
     class Meta:

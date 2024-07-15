@@ -116,29 +116,43 @@ class ArgumentMiningPipelineView(views.APIView):
                 # Don't run the models on existing statements unless asked to do so
                 continue
 
-            # We run the component detection model
+            # Run the component detection model
             components = []
             for component in arguments_components_model(statement.statement):
-                # We only consider components above certain threshold
-                if component["score"] >= settings.MINIMUM_COMPONENT_SCORE:
-                    component = ArgumentativeComponent(
-                        statement=statement,
-                        start=component["start"],
-                        end=component["end"],
-                        label=component["entity_group"],
-                        score=component["score"],
-                    )
-                    # We check, just in case, the component isn't duplicated
-                    component_identifier = component.build_identifier()
-                    if ArgumentativeComponent.objects.filter(
-                        identifier=component_identifier
-                    ).exists():
-                        component = ArgumentativeComponent.objects.get(
-                            identifier=component_identifier
-                        )
-                    else:
-                        component.save()
-                    components.append(component)
+                # Only consider components above certain threshold
+                if component["score"] < settings.MINIMUM_COMPONENT_SCORE:
+                    continue
+
+                component = ArgumentativeComponent(
+                    statement=statement,
+                    start=component["start"],
+                    end=component["end"],
+                    label=component["entity_group"],
+                    score=component["score"],
+                )
+
+                # Clean leading and trailing spaces from the component
+                leading_spaces = len(component.statement_fragment) - len(
+                    component.statement_fragment.lstrip(" ")
+                )
+                component.start += leading_spaces
+
+                trailing_spaces = len(component.statement_fragment) - len(
+                    component.statement_fragment.rstrip(" ")
+                )
+                component.end -= trailing_spaces
+
+                # Check the component fragment has a minimum length (to avoid
+                # components with only single words)
+                if len(component.statement_fragment) < settings.MINIMUM_COMPONENT_LENGTH:
+                    continue
+
+                component_identifier = component.build_identifier()
+                if ArgumentativeComponent.objects.filter(identifier=component_identifier).exists():
+                    component = ArgumentativeComponent.objects.get(identifier=component_identifier)
+                else:
+                    component.save()
+                components.append(component)
 
             # Run relation classification comparing every considered component
             pairs_indices = list(permutations(range(len(components)), 2))

@@ -169,4 +169,5 @@ ARGUMENTS_RELATION_MODEL_MAX_LENGTH = 256
 # Minimum scores to consider creating an argumentative component/relation when
 # running the model, to avoid models overcrowding the DB
 MINIMUM_COMPONENT_SCORE = 0.75
+MINIMUM_COMPONENT_LENGTH = 5
 MINIMUM_RELATION_SCORE = 0.75
