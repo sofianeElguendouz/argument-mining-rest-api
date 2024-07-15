@@ -166,7 +166,9 @@ orbis_am_tool/*_fixtures.json
 orbis_am_tool/orbis_am_tool/settings/*.py
 !orbis_am_tool/orbis_am_tool/settings/__init__.py
 
+# nginx
 nginx/static/
+nginx/certificates/
 
 # Hugging Face
 .hfcache/
