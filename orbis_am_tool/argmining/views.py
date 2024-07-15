@@ -12,10 +12,32 @@ from debate.models import Debate
 from argmining.models import ArgumentativeComponent, ArgumentativeRelation
 
 
-class AnnFilesTar(View):
+class AnnFilesTarView(View):
+    """
+    View to get the brat annotated files for a debate.
+
+    Given a debate identifier, this view builds the files for [brat standoff
+    format](https://brat.nlplab.org/standoff.html), along with files for [brat
+    configuration](https://brat.nlplab.org/configuration.html), so they can be
+    setup within a brat server instance.
+
+    The view is based on the code of
+    [django-tarview](https://github.com/luckydonald/django-tarview), with some
+    adaptations to ditch old Django versions compatibilities.
+    """
     http_method_names = ["get"]
 
-    def get_files(self):
+    def get_files(self) -> list[ContentFile]:
+        """
+        Builds the files to serve in the request:
+
+        - annotation.conf: Brat Configuration for the Annotations.
+        - tools.conf: Brat Configuration for the tools.
+        - <debate_identifier>.txt: The text file with the whole debate, one line per statement.
+        - <debate_identifier>.ann: The ann file with the components and relations.
+
+        Returns a list of ``ContentFile`` with each of the files created.
+        """
         debate = get_object_or_404(Debate, identifier=self.kwargs["identifier"])
 
         argumentative_component_labels = [
@@ -44,7 +66,7 @@ class AnnFilesTar(View):
             "[options]",
             "Validation\tvalidate:all",
             "Tokens\ttokenizer:whitespace",
-            "Sentences\tsplitter:newline",
+            "Sentences\tsplitter:newline",  # This is particularly important to avoid brat splitting
             "Annotation-log\tlogfile:<NONE>",
         ]
         tools_config = ContentFile("\n".join(tools_config).encode("utf-8"), name="tools.conf")
@@ -95,6 +117,12 @@ class AnnFilesTar(View):
         return [ann_file, txt_file, annotation_config, tools_config]
 
     def get(self, request, *args, **kwargs):
+        """
+        View to build the tarfile with the files for brat.
+
+        The code is adapted from the original code in
+        [django-tarview](https://github.com/luckydonald/django-tarview/blob/master/tarview/views.py)
+        """
         tarfile_name = f"{self.kwargs['identifier']}.tgz"
         temp_file = ContentFile(b"", name=tarfile_name)
         with tarfile.TarFile(fileobj=temp_file, mode="w", debug=3) as tar_file:
