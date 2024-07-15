@@ -4,24 +4,14 @@ from argmining.rest.serializers import ArgumentativeComponentSerializer
 from debate.models import Author, Debate, Source, Statement
 
 
-class SourceSerializer(serializers.HyperlinkedModelSerializer):
+class SourceSerializer(serializers.ModelSerializer):
     """
     Serializer for a Debate's ``source`` model.
-
-    It overrides the ``url`` parameter of ``HyperlinkedModelSerializer`` to make
-    it look up via the ``identifier`` field.
     """
-
-    url = serializers.HyperlinkedIdentityField(
-        view_name="source-detail",
-        read_only=True,
-        lookup_field="identifier",
-        help_text="The URL that identifies this source resource.",
-    )
 
     class Meta:
         model = Source
-        exclude = ["identifier"]  # The identifier is already part of the URL
+        exclude = ["id"]
 
 
 class DebateSerializer(serializers.HyperlinkedModelSerializer):
@@ -38,11 +28,10 @@ class DebateSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field="identifier",
         help_text="The URL that identifies this debate resource.",
     )
-    source = serializers.HyperlinkedRelatedField(
-        view_name="source-detail",
+    source = SourceSerializer(
         read_only=True,
-        lookup_field="identifier",
-        help_text="The URL that identifies the source resource of this debate.",
+        required=False,
+        help_text="The Source of this debate.",
     )
     statements = serializers.HyperlinkedRelatedField(
         many=True,

@@ -30,5 +30,5 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="api_docs",
     ),
-    path("", RedirectView.as_view(pattern_name="api_docs"), name="home_redirect")
+    path("", RedirectView.as_view(pattern_name="api_docs"), name="home_redirect"),
 ]

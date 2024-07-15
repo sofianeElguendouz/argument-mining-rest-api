@@ -15,11 +15,6 @@ urlpatterns = [
         name="debate-detail",
     ),
     re_path(
-        r"source/(?P<identifier>[0-9a-f]{16})/$",
-        views.SourceView.as_view(),
-        name="source-detail",
-    ),
-    re_path(
         r"statement/(?P<identifier>[0-9a-f]{16})/$",
         views.StatementView.as_view(),
         name="statement-detail",
