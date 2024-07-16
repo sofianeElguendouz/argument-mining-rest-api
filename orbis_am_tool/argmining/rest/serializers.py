@@ -40,6 +40,7 @@ class ArgumentativeRelationSerializer(serializers.ModelSerializer):
             "target_component",
             "label",
             "score",
+            "has_manual_annotation",
         ]
 
 
@@ -98,6 +99,7 @@ class ArgumentativeComponentSerializer(serializers.HyperlinkedModelSerializer):
             "statement_fragment",
             "relations_as_source",
             "relations_as_target",
+            "has_manual_annotation",
         ]
 
 
@@ -194,6 +196,7 @@ class ArgumentativeGraphNodeSerializer(serializers.HyperlinkedModelSerializer):
             "end",
             "score",
             "statement_fragment",
+            "has_manual_annotation",
         ]
 
 
@@ -241,6 +244,7 @@ class ArgumentativeGraphEdgeSerializer(serializers.ModelSerializer):
             "score",
             "source_text",
             "target_text",
+            "has_manual_annotation",
         ]
 
 
@@ -273,6 +277,12 @@ class ArgumentativeGraphStatementSerializer(serializers.HyperlinkedModelSerializ
             "position, attacking argument or supporting argument"
         ),
     )
+    related_to = serializers.HyperlinkedRelatedField(
+        view_name="debate.rest:statement-detail",
+        lookup_field="identifier",
+        read_only=True,
+        help_text="The URL that identifies the statement with which this statement is realted to.",
+    )
 
     class Meta:
         model = Statement
@@ -281,6 +291,10 @@ class ArgumentativeGraphStatementSerializer(serializers.HyperlinkedModelSerializ
             "author",
             "statement_type",
             "statement",
+            "statement_classification_score",
+            "related_to",
+            "statement_relation_score",
+            "has_manual_annotation",
         ]
 
 

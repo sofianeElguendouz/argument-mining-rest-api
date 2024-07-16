@@ -161,8 +161,11 @@ class StatementSerializer(serializers.HyperlinkedModelSerializer):
             "debate",
             "author",
             "statement_type",
+            "statement_classification_score",
             "statement",
             "argumentative_components",
             "related_to",
+            "statement_relation_score",
             "related_statements",
+            "has_manual_annotation",
         ]  # The identifier is already part of the URL
