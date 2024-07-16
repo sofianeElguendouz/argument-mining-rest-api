@@ -41,6 +41,7 @@ class ArgumentativeRelationSerializer(serializers.ModelSerializer):
             "label",
             "score",
             "has_manual_annotation",
+            "is_cross_statement",
         ]
 
 
@@ -245,6 +246,7 @@ class ArgumentativeGraphEdgeSerializer(serializers.ModelSerializer):
             "source_text",
             "target_text",
             "has_manual_annotation",
+            "is_cross_statement",
         ]
 
 

@@ -194,3 +194,11 @@ class ArgumentativeRelation(models.Model):
         """
         self.full_clean()
         super().save(*args, **kwargs)
+
+    @property
+    def is_cross_statement(self) -> bool:
+        """
+        Returns if a relation is cross statement (i.e., the source and target
+        argumentative components come from different statements).
+        """
+        return self.source.statement != self.target.statement
