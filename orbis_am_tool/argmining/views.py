@@ -25,6 +25,7 @@ class AnnFilesTarView(View):
     [django-tarview](https://github.com/luckydonald/django-tarview), with some
     adaptations to ditch old Django versions compatibilities.
     """
+
     http_method_names = ["get"]
 
     def get_files(self) -> list[ContentFile]:

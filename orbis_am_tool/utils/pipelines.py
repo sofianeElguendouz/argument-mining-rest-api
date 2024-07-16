@@ -22,7 +22,7 @@ arguments_relations_model = pipeline(
     model=settings.ARGUMENTS_RELATIONS_MODEL,
     tokenizer=AutoTokenizer.from_pretrained(
         settings.ARGUMENTS_RELATIONS_MODEL,
-        model_max_length=settings.ARGUMENTS_RELATION_MODEL_MAX_LENGTH,
+        model_max_length=settings.ARGUMENTS_RELATIONS_MODEL_MAX_LENGTH,
     ),
 )
 
@@ -40,6 +40,6 @@ statements_relations_model = pipeline(
     model=settings.STATEMENTS_RELATIONS_MODEL,
     tokenizer=AutoTokenizer.from_pretrained(
         settings.STATEMENTS_RELATIONS_MODEL,
-        model_max_length=settings.STATEMENTS_RELATION_MODEL_MAX_LENGTH,
+        model_max_length=settings.STATEMENTS_RELATIONS_MODEL_MAX_LENGTH,
     ),
 )
