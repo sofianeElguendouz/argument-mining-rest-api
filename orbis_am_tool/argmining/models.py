@@ -57,6 +57,10 @@ class ArgumentativeComponent(AbstractIdentifierModel):
             "It's useful to get a general idea how certain is the model about a prediction."
         ),
     )
+    has_manual_annotation = models.BooleanField(
+        default=False,
+        help_text="Boolean value to denote that the component was annotated manually",
+    )
 
     def __str__(self):
         return f"{self.get_label_display()} component in {self.statement}"
@@ -163,6 +167,10 @@ class ArgumentativeRelation(models.Model):
             "Score (between 0 and 1) given by an automatic model to the classification label. "
             "It's useful to get a general idea how certain is the model about a prediction."
         ),
+    )
+    has_manual_annotation = models.BooleanField(
+        default=False,
+        help_text="Boolean value to denote that the relation was annotated manually",
     )
 
     class Meta:

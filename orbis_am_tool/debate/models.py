@@ -174,6 +174,14 @@ class Statement(AbstractIdentifierModel):
         blank=True,
         help_text="The type of statement being made.",
     )
+    statement_classification_score = models.FloatField(
+        blank=True,
+        null=True,
+        help_text=(
+            "Score (between 0 and 1) given by an automatic model for statement classification. "
+            "It's useful to get a general idea how certain is the model about a prediction."
+        ),
+    )
     related_to = models.ForeignKey(
         "Statement",
         on_delete=models.SET_NULL,
@@ -184,6 +192,18 @@ class Statement(AbstractIdentifierModel):
             "It only makes sense for statements of type SUPPORTING_ARGUMENT or ATTACKING_ARGUMENT."
         ),
         related_name="related_statements",
+    )
+    statement_relation_score = models.FloatField(
+        blank=True,
+        null=True,
+        help_text=(
+            "Score (between 0 and 1) given by an automatic model for statement relation. "
+            "It's useful to get a general idea how certain is the model about a prediction."
+        ),
+    )
+    has_manual_annotation = models.BooleanField(
+        default=False,
+        help_text="Boolean value to denote that the statement was annotated manually",
     )
 
     def __str__(self):
