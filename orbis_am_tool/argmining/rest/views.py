@@ -168,8 +168,8 @@ class ArgumentMiningPipelineView(views.APIView):
             pairs_indices = list(permutations(range(len(components)), 2))
             relations_pairs = [
                 {
-                    "text": statement.statement[components[i].start : components[i].end],
-                    "text_pair": statement.statement[components[j].start : components[j].end],
+                    "text": components[i].statement_fragment,
+                    "text_pair": components[j].statement_fragment,
                 }
                 for i, j in pairs_indices
             ]
@@ -237,15 +237,54 @@ class ArgumentMiningPipelineView(views.APIView):
             )
             statements_pairs.append({"source": source_statement, "target": target_statement})
 
+        relevant_major_claims_pairs = []
+        relevant_major_claims_text_pairs = []
         for rid, relation in enumerate(statements_relations_model(statements_text_pairs)):
             # Only consider Attack/Support relations, with a minimum threshold score, that
             # match the statement type of the source
             if (
-                relation["label"] != statements_pairs[rid]["source"].statement_type
+                relation["label"] == statements_pairs[rid]["source"].statement_type
                 and relation["score"] >= settings.MINIMUM_STATEMENT_RELATION_SCORE
             ):
-                statements_pairs[rid]["source"].related_to = statements_pairs["target"]
-                statements_pairs[rid]["source"].save()
+                source_statement = statements_pairs[rid]["source"]
+                target_statement = statements_pairs[rid]["target"]
+                source_statement.related_to = target_statement
+                source_statement.statement_relation_score = relation["score"]
+                source_statement.save()
+
+                # Those statements that are related are candidates for cross
+                # statement argumentative components relation classification
+                # thus we store the major claims, if they exists
+                source_major_claim = source_statement.get_major_claim()
+                target_major_claim = target_statement.get_major_claim()
+                if source_major_claim is not None and target_major_claim is not None:
+                    relevant_major_claims_pairs.append(
+                        {"source": source_major_claim, "target": target_major_claim}
+                    )
+                    relevant_major_claims_text_pairs.append(
+                        {
+                            "text": source_major_claim.statement_fragment,
+                            "text_pair": target_major_claim.statement_fragment,
+                        }
+                    )
+
+        # With all the relevant major claims collected, we want to check the
+        # cross statements relations between them
+        for rid, relation in enumerate(arguments_relations_model(relevant_major_claims_text_pairs)):
+            # Only consider Attack/Support relations, with a minimum threshold score
+            if (
+                relation["label"] != "noRel"
+                and relation["score"] >= settings.MINIMUM_RELATION_SCORE
+            ):
+                # Try to find an existing relationship, if not create it
+                ArgumentativeRelation.objects.get_or_create(
+                    source=relevant_major_claims_pairs[rid]["source"],
+                    target=relevant_major_claims_pairs[rid]["target"],
+                    defaults=dict(
+                        label=relation["label"],
+                        score=relation["score"],
+                    ),
+                )
 
         statements = StatementSerializer(statements, many=True, context={"request": request})
 
