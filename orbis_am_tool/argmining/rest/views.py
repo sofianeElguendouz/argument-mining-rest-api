@@ -231,9 +231,13 @@ class ArgumentMiningPipelineView(views.APIView):
                 # be subject to automatic annotation because the relation
                 # might not exist in that direction)
                 continue
-            elif source_statement.related_to and not override:
-                # If the source statement has already the related class, don't
-                # run it again unless override is specified
+            elif (
+                source_statement.related_to or source_statement.statement_relation_score == 0
+            ) and not override:
+                # If the source statement has already the related class or if it
+                # was assigned the relation score of 0, even if it's not related
+                # to any other statement, we avoid to run it again unless
+                # specified by override
                 continue
             elif (
                 source_statement.statement_classification_score is not None
@@ -261,15 +265,14 @@ class ArgumentMiningPipelineView(views.APIView):
         for rid, relation in enumerate(statements_relations_model(statements_text_pairs)):
             # Only consider Attack/Support relations, with a minimum threshold score, that
             # match the statement type of the source
+            source_statement = statements_pairs[rid]["source"]
+            target_statement = statements_pairs[rid]["target"]
             if (
                 relation["label"] == statements_pairs[rid]["source"].statement_type
                 and relation["score"] >= settings.MINIMUM_STATEMENT_RELATION_SCORE
             ):
-                source_statement = statements_pairs[rid]["source"]
-                target_statement = statements_pairs[rid]["target"]
                 source_statement.related_to = target_statement
                 source_statement.statement_relation_score = relation["score"]
-                source_statement.save()
 
                 # Those statements that are related are candidates for cross
                 # statement argumentative components relation classification
@@ -286,6 +289,12 @@ class ArgumentMiningPipelineView(views.APIView):
                             "text_pair": target_major_claim.statement_fragment,
                         }
                     )
+            else:
+                # If not, we will set the source statement relation score to 0 as a way
+                # to cache the source statement and avoid running it again unless override
+                # is set
+                source_statement.statement_classification_score = 0
+            source_statement.save()
 
         # With all the relevant major claims collected, we want to check the
         # cross statements relations between them
