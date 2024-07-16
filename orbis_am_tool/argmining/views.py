@@ -16,14 +16,14 @@ class AnnFilesTarView(View):
     """
     View to get the brat annotated files for a debate.
 
-    Given a debate identifier, this view builds the files for [brat standoff
-    format](https://brat.nlplab.org/standoff.html), along with files for [brat
-    configuration](https://brat.nlplab.org/configuration.html), so they can be
+    Given a debate identifier, this view builds the files for `brat standoff
+    format <https://brat.nlplab.org/standoff.html>`_, along with files for `brat
+    configuration <https://brat.nlplab.org/configuration.html>`_, so they can be
     setup within a brat server instance.
 
-    The view is based on the code of
-    [django-tarview](https://github.com/luckydonald/django-tarview), with some
-    adaptations to ditch old Django versions compatibilities.
+    The view is based on the code of `django-tarview
+    <https://github.com/luckydonald/django-tarview>`_, with some adaptations to
+    ditch old Django versions compatibilities.
     """
 
     http_method_names = ["get"]

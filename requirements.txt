@@ -22,6 +22,8 @@ djangorestframework==3.15.1
     # via
     #   orbis-am-tool (pyproject.toml)
     #   drf-spectacular
+docutils==0.21.2
+    # via orbis-am-tool (pyproject.toml)
 drf-spectacular==0.27.2
     # via orbis-am-tool (pyproject.toml)
 filelock==3.13.1
