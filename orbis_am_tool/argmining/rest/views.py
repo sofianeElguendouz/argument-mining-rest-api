@@ -112,17 +112,18 @@ class ArgumentMiningPipelineView(views.APIView):
 
             # Then we instantiate an statement, and check if it exists in the DB
             # (by identifier), if that's the case we retrieve it.
-            statement, _ = Statement.objects.get_or_create(
+            statement, created = Statement.objects.get_or_create(
                 statement=statement_data["statement"], debate=debate, author=author
             )
             statements.append(statement)
 
-            # If an existing statement has been manually annotated or if it has
-            # been assigned a statement type (e.g., because it was already run
-            # by the models), then it should only be run through the models again
-            # if the override option is set.
-            if (
-                not statement.has_manual_annotation or statement.statement_type != ""
+            # If the statement already exists in the database (i.e., created ==
+            # False) and either: is manually annotated (i.e.,
+            # statement.has_manual_annotation == True) or it has been already
+            # automatically annotated (i.e., statement.statement_type != "")
+            # ignore it unless the override option is set to true
+            if not created and (
+                statement.has_manual_annotation or statement.statement_type != ""
             ) and not override:
                 continue
 
@@ -220,7 +221,7 @@ class ArgumentMiningPipelineView(views.APIView):
                 # A statement cannot be a source in a relation unless is an Attack/Support
                 continue
             elif target_statement.statement_type != Statement.StatementType.POSITION:
-                # An Attacking/Supporting statement cannot be a target in a relation
+                # A statement cannot be a target in a relation unless is a Position
                 continue
             elif source_statement.has_manual_annotation:
                 # We shouldn't run automatic annotation on a manually annotated
