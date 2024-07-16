@@ -12,7 +12,12 @@ from argmining.rest import serializers
 from debate.models import Author, Debate, Source, Statement
 from debate.rest.serializers import StatementSerializer
 
-from utils.pipelines import arguments_components_model, arguments_relations_model
+from utils.pipelines import (
+    arguments_components_model,
+    arguments_relations_model,
+    statements_classification_model,
+    statements_relations_model,
+)
 
 
 @extend_schema(
@@ -107,13 +112,18 @@ class ArgumentMiningPipelineView(views.APIView):
 
             # Then we instantiate an statement, and check if it exists in the DB
             # (by identifier), if that's the case we retrieve it.
-            statement, created = Statement.objects.get_or_create(
+            statement, _ = Statement.objects.get_or_create(
                 statement=statement_data["statement"], debate=debate, author=author
             )
             statements.append(statement)
 
-            if not created and not override:
-                # Don't run the models on existing statements unless asked to do so
+            # If an existing statement has been manually annotated or if it has
+            # been assigned a statement type (e.g., because it was already run
+            # by the models), then it should only be run through the models again
+            # if the override option is set.
+            if (
+                not statement.has_manual_annotation or statement.statement_type != ""
+            ) and not override:
                 continue
 
             # Run the component detection model
@@ -142,8 +152,8 @@ class ArgumentMiningPipelineView(views.APIView):
                 )
                 component.end -= trailing_spaces
 
-                # Check the component fragment has a minimum length (to avoid
-                # components with only single words)
+                # Check the component fragment has a minimum length (e.g., to
+                # avoid components with only single words)
                 if len(component.statement_fragment) < settings.MINIMUM_COMPONENT_LENGTH:
                     continue
 
@@ -179,6 +189,63 @@ class ArgumentMiningPipelineView(views.APIView):
                             score=relation["score"],
                         ),
                     )
+
+            # After building the internal argumentative structure, we
+            # automatically classify the statement, that is if it hasn't been
+            # manually annotated
+            if not statement.has_manual_annotation:
+                statement_classification = statements_classification_model(statement.statement)[0]
+                if (
+                    statement_classification["score"]
+                    >= settings.MINIMUM_STATEMENT_CLASSIFICATION_SCORE
+                ):
+                    statement.statement_type = statement_classification["label"]
+                    statement.statement_classification_score = statement_classification["score"]
+                    statement.save()
+
+        statements_text_pairs = []
+        statements_pairs = []
+        for i, j in permutations(range(len(statements)), 2):
+            # Check all the pairs of statements, but only try to classify
+            # relations based on the statement's type. I.e., don't classify
+            # statements that are marked as Positions as part of the source, or
+            # statements marked as Attacking/Supporting as part of the target
+            source_statement = statements[i]
+            target_statement = statements[j]
+
+            if source_statement.statement_type not in {
+                Statement.StatementType.ATTACK,
+                Statement.StatementType.SUPPORT,
+            }:
+                # A statement cannot be a source in a relation unless is an Attack/Support
+                continue
+            elif target_statement.statement_type != Statement.StatementType.POSITION:
+                # An Attacking/Supporting statement cannot be a target in a relation
+                continue
+            elif source_statement.has_manual_annotation:
+                # We shouldn't run automatic annotation on a manually annotated
+                # source statement (the target statement on the other hand can
+                # be subject to automatic annotation because the relation
+                # might not exist in that direction)
+                continue
+            elif source_statement.related_to and not override:
+                # If the source statement has already the related class, don't
+                # run it again unless override is specified
+                continue
+            statements_text_pairs.append(
+                {"text": source_statement.statement, "text_pair": target_statement.statement}
+            )
+            statements_pairs.append({"source": source_statement, "target": target_statement})
+
+        for rid, relation in enumerate(statements_relations_model(statements_text_pairs)):
+            # Only consider Attack/Support relations, with a minimum threshold score, that
+            # match the statement type of the source
+            if (
+                relation["label"] != statements_pairs[rid]["source"].statement_type
+                and relation["score"] >= settings.MINIMUM_STATEMENT_RELATION_SCORE
+            ):
+                statements_pairs[rid]["source"].related_to = statements_pairs["target"]
+                statements_pairs[rid]["source"].save()
 
         statements = StatementSerializer(statements, many=True, context={"request": request})
 
