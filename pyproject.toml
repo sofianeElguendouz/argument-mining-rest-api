@@ -19,7 +19,6 @@ dependencies = [
     "drf-spectacular==0.27.2",
     "gunicorn==22.0.0",
     "markdown==3.6",
-    "optimum[onnxruntime]==1.21.2",
     "psycopg2==2.9.9",
     "torch==2.3.1+cpu",
     "transformers==4.41.1",
