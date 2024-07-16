@@ -15,6 +15,7 @@ arguments_components_model = pipeline(
     ),
     aggregation_strategy=settings.ARGUMENTS_COMPONENT_MODEL_STRATEGY,
     stride=settings.ARGUMENTS_COMPONENT_MODEL_STRIDE,
+    batch_size=settings.MODELS_BATCH_SIZE,
 )
 
 arguments_relations_model = pipeline(
@@ -24,6 +25,7 @@ arguments_relations_model = pipeline(
         settings.ARGUMENTS_RELATIONS_MODEL,
         model_max_length=settings.ARGUMENTS_RELATIONS_MODEL_MAX_LENGTH,
     ),
+    batch_size=settings.MODELS_BATCH_SIZE,
 )
 
 statements_classification_model = pipeline(
@@ -33,6 +35,7 @@ statements_classification_model = pipeline(
         settings.STATEMENTS_CLASSIFICATION_MODEL,
         model_max_length=settings.STATEMENTS_CLASSIFICATION_MODEL_MAX_LENGTH,
     ),
+    batch_size=settings.MODELS_BATCH_SIZE,
 )
 
 statements_relations_model = pipeline(
@@ -42,4 +45,5 @@ statements_relations_model = pipeline(
         settings.STATEMENTS_RELATIONS_MODEL,
         model_max_length=settings.STATEMENTS_RELATIONS_MODEL_MAX_LENGTH,
     ),
+    batch_size=settings.MODELS_BATCH_SIZE,
 )
