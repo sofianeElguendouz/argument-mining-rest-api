@@ -123,7 +123,7 @@ class ArgumentMiningPipelineView(views.APIView):
             if (
                 not created  # Exists in the DB
                 and not statement.has_manual_annotation  # | Automatically Annotated
-                and statement.statement_type != ""       # |
+                and statement.statement_type != ""  # |
                 and not override  # Don't override
             ):
                 continue
@@ -234,6 +234,22 @@ class ArgumentMiningPipelineView(views.APIView):
             elif source_statement.related_to and not override:
                 # If the source statement has already the related class, don't
                 # run it again unless override is specified
+                continue
+            elif (
+                source_statement.statement_classification_score is not None
+                and source_statement.statement_classification_score
+                < settings.MINIMUM_STATEMENT_CLASSIFICATION_SCORE
+            ):
+                # If the source statement classification score is too low don't
+                # consider it for relation classification
+                continue
+            elif (
+                target_statement.statement_classification_score is not None
+                and target_statement.statement_classification_score
+                < settings.MINIMUM_STATEMENT_CLASSIFICATION_SCORE
+            ):
+                # If the target statement classification score is too low don't
+                # consider it for relation classification
                 continue
             statements_text_pairs.append(
                 {"text": source_statement.statement, "text_pair": target_statement.statement}
