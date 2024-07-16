@@ -117,14 +117,15 @@ class ArgumentMiningPipelineView(views.APIView):
             )
             statements.append(statement)
 
-            # If the statement already exists in the database (i.e., created ==
-            # False) and either: is manually annotated (i.e.,
-            # statement.has_manual_annotation == True) or it has been already
-            # automatically annotated (i.e., statement.statement_type != "")
-            # ignore it unless the override option is set to true
-            if not created and (
-                statement.has_manual_annotation or statement.statement_type != ""
-            ) and not override:
+            # If the statement already existed in the database and was
+            # automatically annotated (i.e., the statement type is set and is
+            # not by manual annotation), ignore it unless override option is set
+            if (
+                not created  # Exists in the DB
+                and not statement.has_manual_annotation  # | Automatically Annotated
+                and statement.statement_type != ""       # |
+                and not override  # Don't override
+            ):
                 continue
 
             # Run the component detection model
@@ -165,8 +166,13 @@ class ArgumentMiningPipelineView(views.APIView):
                     component.save()
                 components.append(component)
 
-            # Run relation classification comparing every considered component
-            pairs_indices = list(permutations(range(len(components)), 2))
+            # Run relation classification but only put Premises as sources
+            # Claims can be sources or targets
+            pairs_indices = [
+                (i, j)
+                for i, j in permutations(range(len(components)), 2)
+                if components[j].label != ArgumentativeComponent.ArgumentativeComponentLabel.PREMISE
+            ]
             relations_pairs = [
                 {
                     "text": components[i].statement_fragment,
@@ -196,13 +202,9 @@ class ArgumentMiningPipelineView(views.APIView):
             # manually annotated
             if not statement.has_manual_annotation:
                 statement_classification = statements_classification_model(statement.statement)[0]
-                if (
-                    statement_classification["score"]
-                    >= settings.MINIMUM_STATEMENT_CLASSIFICATION_SCORE
-                ):
-                    statement.statement_type = statement_classification["label"]
-                    statement.statement_classification_score = statement_classification["score"]
-                    statement.save()
+                statement.statement_type = statement_classification["label"]
+                statement.statement_classification_score = statement_classification["score"]
+                statement.save()
 
         statements_text_pairs = []
         statements_pairs = []
