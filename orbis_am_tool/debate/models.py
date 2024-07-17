@@ -1,8 +1,10 @@
 import xxhash
 
+from django.apps import apps
 from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
+from typing import Optional
 
 from utils.django import AbstractIdentifierModel
 
@@ -174,6 +176,14 @@ class Statement(AbstractIdentifierModel):
         blank=True,
         help_text="The type of statement being made.",
     )
+    statement_classification_score = models.FloatField(
+        blank=True,
+        null=True,
+        help_text=(
+            "Score (between 0 and 1) given by an automatic model for statement classification. "
+            "It's useful to get a general idea how certain is the model about a prediction."
+        ),
+    )
     related_to = models.ForeignKey(
         "Statement",
         on_delete=models.SET_NULL,
@@ -184,6 +194,18 @@ class Statement(AbstractIdentifierModel):
             "It only makes sense for statements of type SUPPORTING_ARGUMENT or ATTACKING_ARGUMENT."
         ),
         related_name="related_statements",
+    )
+    statement_relation_score = models.FloatField(
+        blank=True,
+        null=True,
+        help_text=(
+            "Score (between 0 and 1) given by an automatic model for statement relation. "
+            "It's useful to get a general idea how certain is the model about a prediction."
+        ),
+    )
+    has_manual_annotation = models.BooleanField(
+        default=False,
+        help_text="Boolean value to denote that the statement was annotated manually",
     )
 
     def __str__(self):
@@ -208,3 +230,58 @@ class Statement(AbstractIdentifierModel):
         """
         slug = f"{slugify(self.statement)}+{self.debate.identifier}+{self.author.identifier}"
         return xxhash.xxh3_64_hexdigest(slug, seed=settings.XXHASH_SEED)
+
+    def get_major_claim(self) -> Optional["argmining.models.ArgumentativeComponent"]:  # noqa
+        """
+        Ad-Hoc function to get the most important claim from a statement
+
+        To be able to build cross-statements argumentative component relations,
+        while avoiding an explosion in the relationship graph complexity, we
+        need to limit in some way the comparison of argumentative components
+        across different statements. There are many ways to do so, ideally, we
+        would use a model that correctly classifies those "major claims" among
+        the different statements and use only those major claims to check for
+        relationships. However, at the time there's no dataset to build such
+        model, in the future this heuristics function could be replaced by a
+        proper model in charge of doing so, for now this will have to suffice.
+
+        The heuristics of this function is based on 3 principles, these
+        principles are used to select the major claim. This heuristics is flawed
+        however, and should be only temporal:
+            - Claims with the maximum number of inbound relations (i.e., that
+              are target of most of the relations among components within a
+              statement) are the major claims.
+            - Claims with the minimum number of outbound relations (i.e., that
+              are source of the less relations than other claims).
+            - Claim with maximum scores.
+
+        Returns
+        -------
+        argmining.models.ArgumentativeComponent | None
+            The ArgumentativeComponent marked as the major claim, or None if no
+            argumentative component is found.
+        """
+        # Required to be loaded like this to avoid circular importing
+        return (
+            self.argumentative_components.filter(
+                # We filter only claims. It's required to be this way to avoid
+                # circular import
+                label=apps.get_model(
+                    "argmining", "ArgumentativeComponent"
+                ).ArgumentativeComponentLabel.CLAIM
+            )
+            .annotate(
+                # Get the number of relations of the claims as a target and as a source
+                relations_as_target_count=models.Count("relations_as_target"),
+                relations_as_source_count=models.Count("relations_as_source"),
+            )
+            .order_by(
+                # Order by the claim with the most amount of relations as a target (inbound)
+                "-relations_as_target_count",
+                # Then by the claim with the least amount of relations as a source (outbound)
+                "relations_as_source_count",
+                # Finally by the highest score
+                "-score",
+            )
+            .first()  # Return the first claim
+        )

@@ -22,6 +22,7 @@ class AuthorAdmin(AbstractNameModelAdmin):
 
 
 class DebateAdmin(AbstractNameModelAdmin):
+    change_form_template = "debate/admin/debate_change_form.html"
     inlines = [StatementInline]
 
 

@@ -57,6 +57,10 @@ class ArgumentativeComponent(AbstractIdentifierModel):
             "It's useful to get a general idea how certain is the model about a prediction."
         ),
     )
+    has_manual_annotation = models.BooleanField(
+        default=False,
+        help_text="Boolean value to denote that the component was annotated manually",
+    )
 
     def __str__(self):
         return f"{self.get_label_display()} component in {self.statement}"
@@ -164,6 +168,10 @@ class ArgumentativeRelation(models.Model):
             "It's useful to get a general idea how certain is the model about a prediction."
         ),
     )
+    has_manual_annotation = models.BooleanField(
+        default=False,
+        help_text="Boolean value to denote that the relation was annotated manually",
+    )
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["source", "target"], name="unique_edge")]
@@ -186,3 +194,11 @@ class ArgumentativeRelation(models.Model):
         """
         self.full_clean()
         super().save(*args, **kwargs)
+
+    @property
+    def is_cross_statement(self) -> bool:
+        """
+        Returns if a relation is cross statement (i.e., the source and target
+        argumentative components come from different statements).
+        """
+        return self.source.statement != self.target.statement

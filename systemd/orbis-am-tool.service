@@ -1,0 +1,16 @@
+[Unit]
+Description=ORBIS AM Tool Docker Compose
+PartOf=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=True
+WorkingDirectory=/home/orbis/orbis-argument-mining-tool
+ExecStartPre=/usr/bin/docker compose pull --quiet --parallel
+ExecStartPre=/usr/bin/docker compose build --quiet
+ExecStart=/usr/bin/docker compose up -d --remove-orphans
+ExecStop=/usr/bin/docker compose down
+
+[Install]
+WantedBy=multi-user.target

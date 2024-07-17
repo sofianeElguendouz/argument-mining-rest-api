@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 
 DJANGO_APPS = [
     "django.contrib.admin",
+    "django.contrib.admindocs",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -128,8 +129,6 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-STATIC_ROOT = BASE_DIR / "nginx" / "static"
-
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
@@ -156,14 +155,35 @@ SPECTACULAR_SETTINGS = {
 # XXHASH
 XXHASH_SEED = 42
 
+##################################################
+# ORBIS Argumentation Mining Tool Configurations #
+##################################################
+
 # Hugging Face Models
 # You need to set this up to the model you will be using
 # If you are pulling private models, you need to run the Django application
 # with the `HF_TOKEN` variable set
 ARGUMENTS_COMPONENTS_MODEL = "orbis-marianne/deberta-v3-seq-tag"
+ARGUMENTS_COMPONENT_MODEL_STRATEGY = "simple"  # This is the only that works for deberta-v3
+ARGUMENTS_COMPONENT_MODEL_MAX_LENGTH = 128
+ARGUMENTS_COMPONENT_MODEL_STRIDE = 8
+
 ARGUMENTS_RELATIONS_MODEL = "orbis-marianne/deberta-v3-rel-class"
+ARGUMENTS_RELATIONS_MODEL_MAX_LENGTH = 256
+
+STATEMENTS_CLASSIFICATION_MODEL = "orbis-marianne/deberta-v3-sta-class"
+STATEMENTS_CLASSIFICATION_MODEL_MAX_LENGTH = 256
+
+STATEMENTS_RELATIONS_MODEL = "orbis-marianne/deberta-v3-sta-rel"
+STATEMENTS_RELATIONS_MODEL_MAX_LENGTH = 256
 
 # Minimum scores to consider creating an argumentative component/relation when
 # running the model, to avoid models overcrowding the DB
 MINIMUM_COMPONENT_SCORE = 0.90
+MINIMUM_COMPONENT_LENGTH = 5
 MINIMUM_RELATION_SCORE = 0.90
+MINIMUM_STATEMENT_CLASSIFICATION_SCORE = 0.95
+MINIMUM_STATEMENT_RELATION_SCORE = 0.95
+
+# Careful with this as the larger the batch the more memory required
+MODELS_BATCH_SIZE = 4

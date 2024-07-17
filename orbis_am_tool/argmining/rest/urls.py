@@ -2,7 +2,7 @@ from django.urls import path, re_path
 
 from argmining.rest import views
 
-
+app_name = "argmining.rest"
 urlpatterns = [
     path(
         "argument-mining-pipeline/",

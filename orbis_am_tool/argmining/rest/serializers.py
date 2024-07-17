@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from argmining.models import ArgumentativeComponent, ArgumentativeRelation
+from debate.models import Statement
 
 
 class ArgumentativeRelationSerializer(serializers.ModelSerializer):
@@ -18,14 +19,14 @@ class ArgumentativeRelationSerializer(serializers.ModelSerializer):
         help_text="The label (attack/support) of this relation.",
     )
     source_component = serializers.HyperlinkedRelatedField(
-        view_name="component-detail",
+        view_name="argmining.rest:component-detail",
         lookup_field="identifier",
         read_only=True,
         source="source",
         help_text="The URL that identifies the source component of this relation.",
     )
     target_component = serializers.HyperlinkedRelatedField(
-        view_name="component-detail",
+        view_name="argmining.rest:component-detail",
         lookup_field="identifier",
         read_only=True,
         source="target",
@@ -39,6 +40,8 @@ class ArgumentativeRelationSerializer(serializers.ModelSerializer):
             "target_component",
             "label",
             "score",
+            "has_manual_annotation",
+            "is_cross_statement",
         ]
 
 
@@ -58,13 +61,13 @@ class ArgumentativeComponentSerializer(serializers.HyperlinkedModelSerializer):
     """
 
     url = serializers.HyperlinkedIdentityField(
-        view_name="component-detail",
+        view_name="argmining.rest:component-detail",
         lookup_field="identifier",
         read_only=True,
         help_text="The URL that identifies this component resource.",
     )
     statement = serializers.HyperlinkedRelatedField(
-        view_name="statement-detail",
+        view_name="debate.rest:statement-detail",
         lookup_field="identifier",
         read_only=True,
         help_text="The URL that identifies this component's statement resource.",
@@ -97,6 +100,7 @@ class ArgumentativeComponentSerializer(serializers.HyperlinkedModelSerializer):
             "statement_fragment",
             "relations_as_source",
             "relations_as_target",
+            "has_manual_annotation",
         ]
 
 
@@ -167,36 +171,21 @@ class ArgumentativeGraphNodeSerializer(serializers.HyperlinkedModelSerializer):
 
     A node is an argumentative component of a statement, but it won't show the
     relations of it as they are covered by the edges in the Graph.
-
-    It also provides direct access to other parts of the statement like the full
-    text and the author.
     """
 
     url = serializers.HyperlinkedIdentityField(
-        view_name="component-detail",
+        view_name="argmining.rest:component-detail",
         lookup_field="identifier",
         read_only=True,
         help_text="The URL that identifies the component associated to this node.",
     )
     statement = serializers.HyperlinkedRelatedField(
-        view_name="statement-detail",
+        view_name="debate.rest:statement-detail",
         lookup_field="identifier",
         read_only=True,
         help_text="The URL to the statement's resource of this component.",
     )
     label = serializers.CharField(read_only=True, source="get_label_display")
-    statement_text = serializers.CharField(
-        read_only=True,
-        source="statement.statement",
-        help_text="The whole text of the statement.",
-    )
-    statement_author = serializers.HyperlinkedRelatedField(
-        view_name="author-detail",
-        lookup_field="identifier",
-        read_only=True,
-        source="statement.author",
-        help_text="The URL to the author's resource of this component's statement.",
-    )
 
     class Meta:
         model = ArgumentativeComponent
@@ -208,8 +197,7 @@ class ArgumentativeGraphNodeSerializer(serializers.HyperlinkedModelSerializer):
             "end",
             "score",
             "statement_fragment",
-            "statement_text",
-            "statement_author",
+            "has_manual_annotation",
         ]
 
 
@@ -224,7 +212,7 @@ class ArgumentativeGraphEdgeSerializer(serializers.ModelSerializer):
 
     label = serializers.CharField(source="get_label_display")
     source_url = serializers.HyperlinkedRelatedField(
-        view_name="component-detail",
+        view_name="argmining.rest:component-detail",
         lookup_field="identifier",
         read_only=True,
         source="source",
@@ -236,7 +224,7 @@ class ArgumentativeGraphEdgeSerializer(serializers.ModelSerializer):
         help_text="The text fragment of the source component.",
     )
     target_url = serializers.HyperlinkedRelatedField(
-        view_name="component-detail",
+        view_name="argmining.rest:component-detail",
         lookup_field="identifier",
         read_only=True,
         source="target",
@@ -257,6 +245,58 @@ class ArgumentativeGraphEdgeSerializer(serializers.ModelSerializer):
             "score",
             "source_text",
             "target_text",
+            "has_manual_annotation",
+            "is_cross_statement",
+        ]
+
+
+class ArgumentativeGraphStatementSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    Serializer for a statement of the debate of the Argumentative Graph.
+
+    This is useful for direct access to the statement full information, without
+    the extras like the argumentative components and relations since those are
+    already the edges and nodes of the Argumentative Graph.
+    """
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="debate.rest:statement-detail",
+        lookup_field="identifier",
+        read_only=True,
+        help_text="The URL that identifies the statement.",
+    )
+    author = serializers.HyperlinkedRelatedField(
+        view_name="debate.rest:author-detail",
+        read_only=True,
+        lookup_field="identifier",
+        help_text="The URL that identifies the author resource of this statement.",
+    )
+    statement_type = serializers.CharField(
+        read_only=True,
+        source="get_statement_type_display",
+        help_text=(
+            "The type of this statement (if it has any): "
+            "position, attacking argument or supporting argument"
+        ),
+    )
+    related_to = serializers.HyperlinkedRelatedField(
+        view_name="debate.rest:statement-detail",
+        lookup_field="identifier",
+        read_only=True,
+        help_text="The URL that identifies the statement with which this statement is realted to.",
+    )
+
+    class Meta:
+        model = Statement
+        fields = [
+            "url",
+            "author",
+            "statement_type",
+            "statement",
+            "statement_classification_score",
+            "related_to",
+            "statement_relation_score",
+            "has_manual_annotation",
         ]
 
 
@@ -269,10 +309,14 @@ class ArgumentativeGraphSerializer(serializers.Serializer):
     """
 
     debate = serializers.HyperlinkedRelatedField(
-        view_name="debate-detail",
+        view_name="debate.rest:debate-detail",
         lookup_field="identifier",
         read_only=True,
         help_text="The URL that identfies the debate's resource of this graph.",
+    )
+    statements = ArgumentativeGraphStatementSerializer(
+        many=True,
+        read_only=True,
     )
     nodes = ArgumentativeGraphNodeSerializer(
         many=True,

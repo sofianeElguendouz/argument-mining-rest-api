@@ -2,7 +2,7 @@ from drf_spectacular.openapi import OpenApiParameter, OpenApiResponse, OpenApiTy
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 
-from debate.models import Author, Debate, Source, Statement
+from debate.models import Author, Debate, Statement
 from debate.rest import serializers
 
 
@@ -10,7 +10,7 @@ from debate.rest import serializers
     parameters=[
         OpenApiParameter(
             name="identifier",
-            type=OpenApiTypes.UUID,
+            type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
             description="The unique identifier of the author to retrieve.",
         )
@@ -36,7 +36,7 @@ class AuthorView(generics.RetrieveAPIView):
     parameters=[
         OpenApiParameter(
             name="identifier",
-            type=OpenApiTypes.UUID,
+            type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
             description="The unique identifier of the debate to retrieve.",
         )
@@ -62,39 +62,13 @@ class DebateView(generics.RetrieveAPIView):
     parameters=[
         OpenApiParameter(
             name="identifier",
-            type=OpenApiTypes.UUID,
-            location=OpenApiParameter.PATH,
-            description="The unique identifier of the source to retrieve.",
-        )
-    ],
-    responses={
-        status.HTTP_200_OK: serializers.SourceSerializer,
-        status.HTTP_404_NOT_FOUND: OpenApiResponse(description="The source was not found."),
-    },
-)
-class SourceView(generics.RetrieveAPIView):
-    """
-    Source View
-
-    It's a read only view of the specific source, obtained via the identifier.
-    """
-
-    queryset = Source.objects.all()
-    serializer_class = serializers.SourceSerializer
-    lookup_field = "identifier"
-
-
-@extend_schema(
-    parameters=[
-        OpenApiParameter(
-            name="identifier",
-            type=OpenApiTypes.UUID,
+            type=OpenApiTypes.STR,
             location=OpenApiParameter.PATH,
             description="The unique identifier of the statement to retrieve.",
         )
     ],
     responses={
-        status.HTTP_200_OK: serializers.SourceSerializer,
+        status.HTTP_200_OK: serializers.StatementSerializer,
         status.HTTP_404_NOT_FOUND: OpenApiResponse(description="The statement was not found."),
     },
 )
