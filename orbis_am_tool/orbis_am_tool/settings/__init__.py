@@ -155,6 +155,10 @@ SPECTACULAR_SETTINGS = {
 # XXHASH
 XXHASH_SEED = 42
 
+##################################################
+# ORBIS Argumentation Mining Tool Configurations #
+##################################################
+
 # Hugging Face Models
 # You need to set this up to the model you will be using
 # If you are pulling private models, you need to run the Django application
@@ -180,4 +184,6 @@ MINIMUM_COMPONENT_LENGTH = 5
 MINIMUM_RELATION_SCORE = 0.90
 MINIMUM_STATEMENT_CLASSIFICATION_SCORE = 0.95
 MINIMUM_STATEMENT_RELATION_SCORE = 0.95
-MODELS_BATCH_SIZE = 4  # Careful with this as the larger the batch the more memory required
+
+# Careful with this as the larger the batch the more memory required
+MODELS_BATCH_SIZE = 4
