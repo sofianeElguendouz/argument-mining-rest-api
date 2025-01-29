@@ -130,7 +130,7 @@ a file `.env`, check it first, it might be already set up.
 ### Production Environment Settings
 
 The file
-[`./orbis_am_module/orbis_am_module/settings/prod.py.example`](./orbis_am_module/orbis_am_module/settings/prod.py.example)
+[`./orbis_am_tool/orbis_am_tool/settings/prod.py.example`](./orbis_am_tool/orbis_am_tool/settings/prod.py.example)
 shows you an example of a production ready file, that uses also the environment,
 if it's not already in the server, you can copy it and modify it accordingly.
 
