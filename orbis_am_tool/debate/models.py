@@ -207,7 +207,23 @@ class Statement(AbstractIdentifierModel):
         default=False,
         help_text="Boolean value to denote that the statement was annotated manually",
     )
+    #-----------------------------------------------------------------------------------------------------------
+    # New field to store attributions
+    statement_attributions = models.JSONField(
+        blank=True,
+        null=True,
+        default=dict,
+        help_text="A JSON field to store the XAI attribution scores reflecting the importance of each token in the statement classification process."
+    )
 
+    # New field to store attributions
+    statement_relation_attributions = models.JSONField(
+        blank=True,
+        null=True,
+        default=dict,
+        help_text="A JSON field to store the XAI attribution scores reflecting the importance of each token in the statement relation classification process."
+    )
+    # -----------------------------------------------------------------------------------------------------------
     def __str__(self):
         return (
             f'{self.get_statement_type_display()} statement over "{self.debate}" by {self.author}'
