@@ -32,7 +32,14 @@ class ArgumentativeRelationSerializer(serializers.ModelSerializer):
         source="target",
         help_text="The URL that identifies the target component of this relation.",
     )
-
+    # -----------------------------------------------------------------------------------------------------------
+    relation_attributions = serializers.JSONField(
+        read_only=True,
+        initial=dict,
+        required=False,
+        help_text="A JSON field to store the XAI attribution scores reflecting the importance of each token, in both source and target components, for the classification of the relation."
+    )
+    # -----------------------------------------------------------------------------------------------------------
     class Meta:
         model = ArgumentativeRelation
         fields = [
@@ -42,6 +49,7 @@ class ArgumentativeRelationSerializer(serializers.ModelSerializer):
             "score",
             "has_manual_annotation",
             "is_cross_statement",
+            "relation_attributions",
         ]
 
 
@@ -87,7 +95,14 @@ class ArgumentativeComponentSerializer(serializers.HyperlinkedModelSerializer):
         read_only=True,
         help_text="The list of relations this component is part of as a target of the relation.",
     )
-
+    # -----------------------------------------------------------------------------------------------------------
+    component_attributions = serializers.JSONField(
+        read_only=True,
+        initial=dict,
+        required=False,
+        help_text="The XAI attribution scores for the tokens within the argumentative component."
+    )
+    # -----------------------------------------------------------------------------------------------------------
     class Meta:
         model = ArgumentativeComponent
         fields = [
@@ -101,6 +116,7 @@ class ArgumentativeComponentSerializer(serializers.HyperlinkedModelSerializer):
             "relations_as_source",
             "relations_as_target",
             "has_manual_annotation",
+            "component_attributions",
         ]
 
 
