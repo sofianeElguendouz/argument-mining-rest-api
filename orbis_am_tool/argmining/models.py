@@ -61,7 +61,15 @@ class ArgumentativeComponent(AbstractIdentifierModel):
         default=False,
         help_text="Boolean value to denote that the component was annotated manually",
     )
-
+    # -----------------------------------------------------------------------------------------------------------
+    # New field to store attributions
+    component_attributions = models.JSONField(
+        blank=True,
+        null=True,
+        default=dict,
+        help_text="A JSON field to store the XAI attribution scores reflecting the importance of each token for the classification of the argumentative component."
+    )
+    # -----------------------------------------------------------------------------------------------------------
     def __str__(self):
         return f"{self.get_label_display()} component in {self.statement}"
 
@@ -160,6 +168,14 @@ class ArgumentativeRelation(models.Model):
         choices=ArgumentativeRelationLabel,
         help_text="The type of relation between the components.",
     )
+    # -----------------------------------------------------------------------------------------------------------
+    relation_attributions = models.JSONField(
+        blank=True,
+        null=True,
+        default=dict,
+        help_text="A JSON field to store the XAI attribution scores reflecting the importance of each token, in both source and target components, for the classification of the relation."
+    )
+    # -----------------------------------------------------------------------------------------------------------
     score = models.FloatField(
         blank=True,
         null=True,
