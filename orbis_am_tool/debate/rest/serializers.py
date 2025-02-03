@@ -153,7 +153,20 @@ class StatementSerializer(serializers.HyperlinkedModelSerializer):
             "which are related to this statement."
         ),
     )
-
+    # -----------------------------------------------------------------------------------------------------------
+    statement_attributions = serializers.JSONField(
+        read_only=True,
+        initial=dict,
+        required=False,
+        help_text="A JSON field to store the XAI attribution scores reflecting the importance of each token in the statement classification process."
+    )
+    statement_relation_attributions = serializers.JSONField(
+        read_only=True,
+        initial=dict,
+        required=False,
+        help_text="A JSON field to store the XAI attribution scores reflecting the importance of each token in the statement relation classification process."
+    )
+    # -----------------------------------------------------------------------------------------------------------
     class Meta:
         model = Statement
         fields = [
@@ -168,4 +181,6 @@ class StatementSerializer(serializers.HyperlinkedModelSerializer):
             "statement_relation_score",
             "related_statements",
             "has_manual_annotation",
+            "statement_attributions",
+            "statement_relation_attributions",
         ]  # The identifier is already part of the URL
