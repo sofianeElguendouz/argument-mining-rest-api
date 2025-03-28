@@ -1,12 +1,8 @@
-ORBIS Argumentation Mining Tool
+Argumentation Mining Tool
 ===============================
 
-This repository has the code to run the [ORBIS Argumentation Mining
-Tool](https://orbis.i3s.unice.fr/).
-
-This repository is part of the ORBIS Project on "Augmenting participation,
-co-creation, trust and transparency in Deliberative Democracy at all scales".
-For more information on the project please check: https://orbis-project.eu/.
+This repository has the code to run the [Argumentation Mining
+REST API](https://orbis.i3s.unice.fr/).
 
 The base application is written with [Django](https://www.djangoproject.com/)
 and [Django Rest Framework](https://www.django-rest-framework.org/) for the REST
